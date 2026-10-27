@@ -1,0 +1,25 @@
+{
+  "editor.tabSize": 2,
+  "editor.formatOnSave": true,
+  "editor.renderWhitespace": "selection",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.exclude": {
+    "**/.git": true,
+    "**/build/work": true,
+    "**/build/out": true,
+    "**/target": true,
+    "**/node_modules": true
+  },
+  "search.exclude": {
+    "**/build/work": true,
+    "**/build/out": true,
+    "**/target": true,
+    "**/node_modules": true,
+    "**/*.iso": true
+  },
+  "antigravity.model": "gemini-4-argon",
+  "antigravity.thinkingLevel": "high",
+  "antigravity.agentMode": true,
+  "antigravity.autoSecurityReview": true
+}

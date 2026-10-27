@@ -1,0 +1,60 @@
+# SynapseOS Distribution & Build Gitignore
+# Strict protection against ISO artifacts, chroots, build caches, and credentials
+
+# ISO Builds & Working Root Filesystems
+build/work/
+build/out/
+*.iso
+*.iso.sig
+*.iso.sha256
+airootfs/
+root.x86_64/
+
+# Package Builds & Arch PKGBUILD Caches
+*.pkg.tar.zst
+*.pkg.tar.xz
+*.pkg.tar.gz
+src/
+pkg/
+
+# Compiled Binaries & Rust Cargo
+target/
+Cargo.lock
+*.so
+*.o
+*.a
+
+# Node / Web UI Caches
+node_modules/
+dist/
+.pnpm-store/
+npm-debug.log*
+
+# Python & Local AI Virtualenvs
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+
+# Credentials, Keys & Local Secrets
+*.pem
+*.key
+*.crt
+*.p12
+*.secret
+*id_rsa*
+*id_ed25519*
+.env
+.env.*
+!.env.example
+
+# Temporary & Editor Artifacts
+.DS_Store
+*.swp
+*.swo
+*~
+.idea/
+*.log
+EOF
