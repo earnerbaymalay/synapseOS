@@ -1,0 +1,9 @@
+##
+## CachyOS x86-64-v3 Optimized Repository Mirrorlist (AVX2 / BMI2)
+##
+
+Server = https://mirror.cachyos.org/repo/x86_64_v3/$repo
+Server = https://cdn77.cachyos.org/repo/x86_64_v3/$repo
+Server = https://us.cachyos.org/repo/x86_64_v3/$repo
+Server = https://de-1.cachyos.org/repo/x86_64_v3/$repo
+Server = https://sg.cachyos.org/repo/x86_64_v3/$repo

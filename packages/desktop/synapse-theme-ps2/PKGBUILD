@@ -14,11 +14,15 @@ optdepends=(
   'chromium: Interactive WebGL/Canvas kiosk mode (--web)'
 )
 makedepends=('git')
-source=("ps2-startup::git+https://github.com/earnerbaymalay/ps2-startup.git#branch=main")
+source=("synapse-cli::git+https://github.com/earnerbaymalay/synapse-cli.git#branch=main")
 sha256sums=('SKIP')
 
 package() {
-  cd "$srcdir/ps2-startup"
+  if [[ -d "$srcdir/synapse-cli/ps2-startup" ]]; then
+    cd "$srcdir/synapse-cli/ps2-startup"
+  elif [[ -d "$srcdir/ps2-startup" ]]; then
+    cd "$srcdir/ps2-startup"
+  fi
 
   # 1. Install PS2 startup CLI orchestrator
   install -Dm755 "xfce-ps2-startup" "$pkgdir/usr/bin/ps2-startup"

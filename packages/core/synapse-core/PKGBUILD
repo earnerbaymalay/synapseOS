@@ -13,6 +13,7 @@ optdepends=(
   'obsidian: Central AI Knowledge Base vault viewer'
 )
 backup=('etc/synapse/config.toml')
+options=('!debug' '!lto')
 source=(
   "synapse::git+https://github.com/earnerbaymalay/synapse.git#branch=main"
   "synapse.service"
@@ -29,22 +30,23 @@ sha256sums=(
 prepare() {
   cd "$srcdir/synapse"
   export RUSTUP_TOOLCHAIN=stable
-  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
 }
 
 build() {
   cd "$srcdir/synapse"
+  unset CFLAGS CXXFLAGS LDFLAGS
   export RUSTUP_TOOLCHAIN=stable
   export CARGO_TARGET_DIR=target
   export RUSTFLAGS="-C target-cpu=x86-64-v3 -C opt-level=3 -C codegen-units=1"
-  cargo build --release --locked --bin synapse
+  cargo build --release --locked -p synapse --bin synapse
 }
 
 check() {
   cd "$srcdir/synapse"
+  unset CFLAGS CXXFLAGS LDFLAGS
   export RUSTUP_TOOLCHAIN=stable
   export CARGO_TARGET_DIR=target
-  cargo test --release --locked
+  cargo test --release --locked -p synapse -p synapse-core
 }
 
 package() {

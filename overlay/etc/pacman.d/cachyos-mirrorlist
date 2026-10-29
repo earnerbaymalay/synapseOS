@@ -1,0 +1,9 @@
+##
+## CachyOS Repository Mirrorlist (x86_64)
+##
+
+Server = https://mirror.cachyos.org/repo/x86_64/$repo
+Server = https://cdn77.cachyos.org/repo/x86_64/$repo
+Server = https://us.cachyos.org/repo/x86_64/$repo
+Server = https://de-1.cachyos.org/repo/x86_64/$repo
+Server = https://sg.cachyos.org/repo/x86_64/$repo

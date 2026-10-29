@@ -1,0 +1,80 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "SynapseOS: Verify Gates (G1-G4)",
+      "type": "shell",
+      "command": "./build/verify-gates.sh",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "SynapseOS: Dry-Run ISO Build & Sync Overlays",
+      "type": "shell",
+      "command": "./build/build-iso.sh --dry-run",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "SynapseOS: Build Native Packages (makepkg)",
+      "type": "shell",
+      "command": "./build/build-iso.sh --build-pkgs --dry-run",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "build",
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "SynapseOS: Build Full Bootable ISO (mkarchiso)",
+      "type": "shell",
+      "command": "sudo ./build/build-iso.sh",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "SynapseOS: Boot ISO in QEMU/KVM",
+      "type": "shell",
+      "command": "qemu-system-x86_64 -enable-kvm -m 4096 -smp 4 -cpu host -vga virtio -display default,show-cursor=on -cdrom $(ls -t out/synapseos-*.iso | head -n1)",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
