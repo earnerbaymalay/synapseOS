@@ -32,7 +32,6 @@ linux-cachyos-headers
 ananicy-cpp
 cachyos-ananicy-rules
 zram-generator
-nohang
 tlp
 throttled
 hdparm
@@ -85,6 +84,16 @@ python-gobject
 gtk3
 gtk4
 
+# --- Optional Wayland Tiling Session (Sway + Waybar) ---
+sway
+waybar
+foot
+xorg-xwayland
+wl-clipboard
+grim
+slurp
+swayidle
+
 # --- AI Core & Autonomous Developer Stack ---
 ollama
 uv
@@ -117,8 +126,8 @@ networkmanager
 iptables-nft
 nftables
 wireshark-qt
+wireshark-cli
 termshark
-tshark
 bettercap
 nmap
 macchanger

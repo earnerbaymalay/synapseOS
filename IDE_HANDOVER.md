@@ -3,7 +3,7 @@
 **Project:** SynapseOS (`https://github.com/earnerbaymalay/synapseOS`)  
 **Workspace Root:** `/home/ebaymlay/Desktop/AI CLI WORK/synapseOS`  
 **Assigned Model:** Gemini 4 Argon (High Reasoning)  
-**Handover Status:** Phases 1–5 + Stage A (`[synapseos]` Native Package Compilation) & Stage B (Archiso Staging & CachyOS Mirrorlists/Keyring) Complete (**86/86 Gates Passing**)
+**Handover Status:** Phases 1–5 + Stage A (`[synapseos]` Native Package Compilation) & Stage B (Archiso Staging & CachyOS Mirrorlists/Keyring) Complete (**120/120 Gates Passing**)
 
 ---
 
@@ -17,10 +17,10 @@ All structural specifications, packaging recipes, system overlays, and live ISO 
 | **LLM Quickfire Panel Package** | [`packages/desktop/llm-quickfire-panel/PKGBUILD`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/packages/desktop/llm-quickfire-panel/PKGBUILD) | Ready (`quickfire`, `quickfire-theme`, palettes, XDG autostart) |
 | **PS2 Boot & SDDM Theme Package** | [`packages/desktop/synapse-theme-ps2/PKGBUILD`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/packages/desktop/synapse-theme-ps2/PKGBUILD) | Ready (Original PS2 boot sequence $\rightarrow$ 4K XFCE 4.20 background + `ps2-xfce` SDDM greeter) |
 | **Kernel, ZRAM & Stealth Overlay** | [`overlay/etc/`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/overlay/etc) | Ready (`99-synapseos.conf`, `zram-generator.conf`, MAC randomization, RFC 4941 IPv6, Quad9 DoT) |
-| **Cyberdeck Desktop & User Skel** | [`overlay/etc/skel/`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/overlay/etc/skel) & [`picom.conf`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/overlay/etc/xdg/picom.conf) | Ready (`dual_kawase` blur, Kitty transparency, `.synapse/config.toml`, `.bashrc`) |
+| **Cyberdeck Desktop & User Skel** | [`overlay/etc/skel/`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/overlay/etc/skel) & [`picom.conf`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/overlay/etc/xdg/picom.conf) | Ready (`dual_kawase` blur, Kitty transparency, Sway/Waybar dual-session, `.synapse/config.toml`, `.bashrc`) |
 | **Archiso Live Profile** | [`build/archiso/`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/build/archiso) & [`build/build-iso.sh`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/build/build-iso.sh) | Ready (`linux-cachyos`, UEFI `systemd-boot` + BIOS `syslinux`, `customize_airootfs.sh`) |
-| **Calamares Installer** | [`packages/installer/calamares/`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/packages/installer/calamares) | Ready (PS2 Cyber Blue + Catppuccin Mauve branding, Btrfs `@`/`@home`/`@snapshots` zstd layout) |
-| **Verification Gate Suite** | [`build/verify-gates.sh`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/build/verify-gates.sh) | **86/86 Checks Passing** |
+| **Calamares Installer** | [`packages/installer/calamares/`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/packages/installer/calamares) | Ready (Catppuccin Mauve + Liquid Silver Chrome + Obsidian Crust branding, Btrfs `@`/`@home`/`@snapshots` zstd layout) |
+| **Verification Gate Suite** | [`build/verify-gates.sh`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/build/verify-gates.sh) | **120/120 Checks Passing** |
 
 ---
 
@@ -49,4 +49,4 @@ Now that the workspace is open in **Antigravity IDE**, the IDE agent (running **
 
 Paste this into the Antigravity IDE agent panel to begin immediately:
 
-> Read `IDE_HANDOVER.md`, `ROADMAP.md`, and `docs/EXECUTION_PLAN.md`. Run `./build/verify-gates.sh`, then begin Stage A & Stage B: compile the native packages (`synapse-core`, `llm-quickfire-panel`, `synapse-theme-ps2`) into the local `[synapseos]` repository (`out/repo/`), stage the `airootfs` overlay with `./build/build-iso.sh --dry-run`, and prepare the CachyOS mirrorlists and keyring setup for full live ISO compilation.
+> Read `IDE_HANDOVER.md`, `ROADMAP.md`, and `docs/ARCHITECTURE.md`. Run `./build/verify-gates.sh`, verify the compiled `[synapseos]` repository packages in `out/repo/` (`synapse-core`, `llm-quickfire-panel`, `synapse-theme-ps2`, `synapseos.db.tar.gz`) and staged `airootfs` from Stages A & B, then proceed to Stage C & Stage D: build the bootable Live ISO (`./build/build-iso.sh`), verify QEMU/KVM boot, and prepare the `v0.1.0-alpha` release artifacts (`out/SHA256SUMS`).

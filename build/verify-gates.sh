@@ -145,8 +145,63 @@ if [[ -d "${SDDM_CONF_DIR}" ]] || [[ -f "${SDDM_CONF_FILE}" ]]; then
     else
         fail "SDDM theme ps2-xfce not found in overlay/etc/sddm*"
     fi
+    check_file_contains "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-synapseos-ps2.conf" "HideUsers=git,ollama,synapse-daemon" "SDDM HideUsers excludes live user 'synapse'"
 else
     warn "Pending Phase 3 deliverable: SDDM configuration in overlay/etc/sddm*"
+fi
+
+SDDM_THEME_CONF="${REPO_ROOT}/packages/desktop/synapse-theme-ps2/src/synapse-cli/ps2-startup/sddm-theme/theme.conf"
+SDDM_MAIN_QML="${REPO_ROOT}/packages/desktop/synapse-theme-ps2/src/synapse-cli/ps2-startup/sddm-theme/Main.qml"
+SYNAPSE_SVC="${REPO_ROOT}/packages/core/synapse-core/synapse.service"
+QF_THEME_BIN="${REPO_ROOT}/packages/desktop/llm-quickfire-panel/src/llm-quickfire-panel/bin/quickfire-theme"
+QF_DESKTOP_SRC="${REPO_ROOT}/packages/desktop/llm-quickfire-panel/src/llm-quickfire-panel/config/llm-quickfire-panel.desktop"
+
+check_file_contains "${SDDM_THEME_CONF}" "^user=synapse$" "SDDM ps2-xfce theme.conf defaults to user=synapse"
+check_file_contains "${SDDM_MAIN_QML}" "#cba6f7" "SDDM Main.qml uses Catppuccin Mauve (#cba6f7)"
+check_file_contains "${SDDM_MAIN_QML}" "#11111b" "SDDM Main.qml uses Obsidian Crust (#11111b)"
+check_file_contains "${SDDM_MAIN_QML}" "#cdd6f4" "SDDM Main.qml uses Liquid Silver Chrome (#cdd6f4)"
+check_file_contains "${SDDM_MAIN_QML}" "sway\.desktop" "SDDM Main.qml supports sway.desktop session selection"
+check_file_contains "${SDDM_MAIN_QML}" "toggleSession" "SDDM Main.qml provides session toggle (XFCE/Sway)"
+if grep -Eq "password\.text\.length[[:space:]]*===[[:space:]]*0" "${SDDM_MAIN_QML}"; then
+    fail "SDDM Main.qml blocks passwordless live user login"
+else
+    pass "SDDM Main.qml allows passwordless live user login"
+fi
+if grep -Eq "#5fb4ff|#2b6cc0|#174a8c|#7cc2ff" "${SDDM_MAIN_QML}"; then
+    fail "SDDM Main.qml still contains legacy blue accent colors"
+else
+    pass "SDDM Main.qml has zero legacy blue accent colors"
+fi
+
+check_file_contains "${SYNAPSE_SVC}" "^User=synapse-daemon$" "synapse.service isolates DynamicUser as User=synapse-daemon"
+check_file_contains "${SYNAPSE_SVC}" "^Group=synapse-daemon$" "synapse.service isolates DynamicUser as Group=synapse-daemon"
+check_file_contains "${QF_DESKTOP_SRC}" "^Exec=/usr/bin/quickfire --autostart$" "llm-quickfire-panel.desktop uses /usr/bin/quickfire --autostart"
+if grep -Fq "ps2-cyber-blue" "${QF_THEME_BIN}"; then
+    fail "quickfire-theme still contains legacy ps2-cyber-blue option"
+else
+    pass "quickfire-theme has zero legacy ps2-cyber-blue references"
+fi
+
+SWAY_CONF="${REPO_ROOT}/overlay/etc/skel/.config/sway/config"
+WAYBAR_CONF="${REPO_ROOT}/overlay/etc/skel/.config/waybar/config.jsonc"
+WAYBAR_STYLE="${REPO_ROOT}/overlay/etc/skel/.config/waybar/style.css"
+
+check_file_contains "${SWAY_CONF}" "Mod4\+space.*(/usr/bin/quickfire|\$menu)" "Sway config binds Mod4+space to /usr/bin/quickfire"
+check_file_contains "${SWAY_CONF}" "Mod4\+d.*(/usr/bin/quickfire|\$menu)" "Sway config binds Mod4+d to /usr/bin/quickfire"
+check_file_contains "${SWAY_CONF}" "Mod4\+Return.*(kitty|foot|\$term)" "Sway config binds Mod4+Return to kitty/foot"
+check_file_contains "${SWAY_CONF}" "#11111b" "Sway config uses Obsidian Crust (#11111b)"
+check_file_contains "${SWAY_CONF}" "#cba6f7" "Sway config uses Catppuccin Mocha Mauve (#cba6f7)"
+check_file_contains "${SWAY_CONF}" "#cdd6f4" "Sway config uses Liquid Silver Chrome (#cdd6f4)"
+check_file_contains "${WAYBAR_CONF}" "sway/workspaces" "Waybar config.jsonc defines sway/workspaces"
+check_file_contains "${WAYBAR_STYLE}" "#11111b" "Waybar style.css uses Obsidian Crust (#11111b)"
+check_file_contains "${WAYBAR_STYLE}" "#1e1e2e" "Waybar style.css uses Catppuccin Base (#1e1e2e)"
+check_file_contains "${WAYBAR_STYLE}" "#cba6f7" "Waybar style.css uses Catppuccin Mocha Mauve (#cba6f7)"
+check_file_contains "${WAYBAR_STYLE}" "#cdd6f4" "Waybar style.css uses Liquid Silver Chrome (#cdd6f4)"
+
+if grep -Rqs -i "#00a8ff" "${REPO_ROOT}/overlay" "${REPO_ROOT}/packages/installer/calamares"; then
+    fail "Legacy #00a8ff color found in overlay/ or Calamares branding"
+else
+    pass "Zero legacy #00a8ff references in overlay/ and Calamares branding"
 fi
 
 if [[ -f "${REPO_ROOT}/tests/test_ps2_startup.py" ]]; then
@@ -198,6 +253,14 @@ REQUIRED_PKGS=(
     "picom"
     "kitty"
     "rofi"
+    "sway"
+    "waybar"
+    "foot"
+    "xorg-xwayland"
+    "wl-clipboard"
+    "grim"
+    "slurp"
+    "swayidle"
     "ollama"
     "uv"
     "rust"
@@ -211,6 +274,7 @@ REQUIRED_PKGS=(
     "git-delta"
     "firewalld"
     "wireshark-qt"
+    "wireshark-cli"
     "termshark"
     "bettercap"
     "nmap"
@@ -224,8 +288,16 @@ for pkg in "${REQUIRED_PKGS[@]}"; do
     check_file_contains "${PACKAGES_FILE}" "^${pkg}$" "Package '${pkg}' present in packages.x86_64"
 done
 
+if grep -Eq "^(nohang|tshark)$" "${PACKAGES_FILE}"; then
+    fail "packages.x86_64 contains unresolvable package names (nohang or tshark)"
+else
+    pass "packages.x86_64 excludes AUR/alias blockers (nohang, tshark)"
+fi
+
 check_file_contains "${PACMAN_CONF}" "^\[synapseos\]" "pacman.conf includes [synapseos] repo"
 check_file_contains "${PACMAN_CONF}" "^\[cachyos-v3\]" "pacman.conf includes [cachyos-v3] repo"
+check_file_contains "${PACMAN_CONF}" "^\[cachyos-core-v3\]" "pacman.conf includes [cachyos-core-v3] repo"
+check_file_contains "${PACMAN_CONF}" "^\[cachyos-extra-v3\]" "pacman.conf includes [cachyos-extra-v3] repo"
 check_file_contains "${PACMAN_CONF}" "^\[cachyos\]" "pacman.conf includes [cachyos] repo"
 check_file_contains "${PACMAN_CONF}" "^\[core\]" "pacman.conf includes [core] repo"
 check_file_contains "${PACMAN_CONF}" "^\[extra\]" "pacman.conf includes [extra] repo"
@@ -246,23 +318,75 @@ else
     fail "build/build-iso.sh is not executable or has syntax errors"
 fi
 
+if "${BUILD_ISO_SH}" --dry-run >/dev/null 2>&1; then
+    pass "build/build-iso.sh --dry-run stages airootfs and validates profile"
+else
+    fail "build/build-iso.sh --dry-run failed to stage airootfs"
+fi
+
+if command -v shellcheck >/dev/null 2>&1; then
+    if shellcheck "${BUILD_ISO_SH}" "${REPO_ROOT}/build/verify-gates.sh" "${PROFILEDEF}" "${CUSTOMIZE_SH}"; then
+        pass "ShellCheck validation passed for all build & archiso scripts"
+    else
+        fail "ShellCheck reported warnings/errors in build scripts"
+    fi
+fi
+
+# Stage A & B: Local [synapseos] repo, CachyOS mirrorlists, keyring & staged airootfs checks
+if [[ -d "${REPO_ROOT}/out/repo" ]]; then
+    for repo_artifact in \
+        "${REPO_ROOT}/out/repo/synapseos.db.tar.gz" \
+        "${REPO_ROOT}/build/archiso/airootfs/var/cache/synapseos-repo/synapseos.db.tar.gz"; do
+        rel_art="${repo_artifact#"${REPO_ROOT}/"}"
+        if [[ -f "${repo_artifact}" ]]; then
+            pass "Repository database present: ${rel_art}"
+        else
+            fail "Repository database missing: ${rel_art}"
+        fi
+    done
+
+    for built_pkg in "synapse-core" "llm-quickfire-panel" "synapse-theme-ps2"; do
+        if compgen -G "${REPO_ROOT}/out/repo/${built_pkg}-*.pkg.tar.*" >/dev/null; then
+            pass "Compiled package archive in out/repo/: ${built_pkg}"
+        else
+            fail "Compiled package archive missing in out/repo/: ${built_pkg}"
+        fi
+    done
+fi
+
+check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/pacman.d/cachyos-mirrorlist" "mirror\.cachyos\.org/repo/x86_64" "Staged airootfs CachyOS x86_64 mirrorlist"
+check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/pacman.d/cachyos-v3-mirrorlist" "mirror\.cachyos\.org/repo/x86_64_v3" "Staged airootfs CachyOS x86-64-v3 mirrorlist"
+check_file_contains "${CUSTOMIZE_SH}" "F3B607488DB35A47" "customize_airootfs.sh imports and signs CachyOS key (F3B607488DB35A47)"
+check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/skel/.config/sway/config" "Mod4\+space.*(/usr/bin/quickfire|\$menu)" "Staged airootfs includes Sway config"
+check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/skel/.config/waybar/style.css" "#cba6f7" "Staged airootfs includes Waybar style.css"
+
+if grep -Rqs -i "#00a8ff" "${REPO_ROOT}/build/archiso/airootfs/etc"; then
+    fail "Legacy #00a8ff color found in staged build/archiso/airootfs/etc"
+else
+    pass "Zero legacy #00a8ff references in staged build/archiso/airootfs/etc"
+fi
+
 # Calamares checks
 CAL_SETTINGS="${REPO_ROOT}/packages/installer/calamares/settings.conf"
 CAL_BRANDING="${REPO_ROOT}/packages/installer/calamares/branding/synapseos/branding.desc"
 CAL_PARTITION="${REPO_ROOT}/packages/installer/calamares/modules/partition.conf"
 CAL_SERVICES="${REPO_ROOT}/packages/installer/calamares/modules/services-systemd.conf"
+CAL_UNPACKFS="${REPO_ROOT}/packages/installer/calamares/modules/unpackfs.conf"
 
 check_file_contains "${CAL_SETTINGS}" "branding:[[:space:]]*synapseos" "Calamares settings.conf uses synapseos branding"
 check_file_contains "${CAL_SETTINGS}" "unpackfs" "Calamares settings.conf exec sequence includes unpackfs"
 check_file_contains "${CAL_SETTINGS}" "services-systemd" "Calamares settings.conf exec sequence includes services-systemd"
 check_file_contains "${CAL_BRANDING}" "componentName:[[:space:]]*synapseos" "Calamares branding.desc defines synapseos component"
-check_file_contains "${CAL_BRANDING}" "#00a8ff" "Calamares branding.desc includes PS2 Cyber Blue (#00a8ff)"
+check_file_contains "${CAL_BRANDING}" "#11111b" "Calamares branding.desc includes Obsidian Crust (#11111b)"
+check_file_contains "${CAL_BRANDING}" "#cdd6f4" "Calamares branding.desc includes Liquid Silver Chrome (#cdd6f4)"
 check_file_contains "${CAL_BRANDING}" "#cba6f7" "Calamares branding.desc includes Catppuccin Mauve (#cba6f7)"
 check_file_contains "${CAL_PARTITION}" 'defaultFileSystemType:[[:space:]]*"btrfs"' "Calamares partition.conf defaults to Btrfs"
 check_file_contains "${CAL_PARTITION}" "/@snapshots" "Calamares partition.conf defines @snapshots subvolume"
 check_file_contains "${CAL_SERVICES}" "synapse" "Calamares services-systemd.conf enables synapse service"
 check_file_contains "${CAL_SERVICES}" "sddm" "Calamares services-systemd.conf enables sddm service"
 check_file_contains "${CAL_SERVICES}" "firewalld" "Calamares services-systemd.conf enables firewalld service"
+check_file_contains "${CAL_UNPACKFS}" "/run/archiso/bootmnt/synapseos/x86_64/airootfs\.sfs" "Calamares unpackfs.conf targets /run/archiso/bootmnt/synapseos/x86_64/airootfs.sfs"
+check_file_contains "${CAL_UNPACKFS}" 'sourcefs:[[:space:]]*"squashfs"' "Calamares unpackfs.conf specifies squashfs sourcefs"
 
 # GitHub Actions workflow check
 GH_WORKFLOW="${REPO_ROOT}/.github/workflows/build-iso.yml"

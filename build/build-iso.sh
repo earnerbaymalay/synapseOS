@@ -116,26 +116,25 @@ build_local_packages() {
     echo "==> Building local SynapseOS native packages into ${LOCAL_REPO_DIR}..."
     mkdir -p "${LOCAL_REPO_DIR}"
 
-    # Pre-seed local sources when available on workstation to avoid redundant network clones
-    if [[ -d "/home/ebaymlay/work/synapse" ]]; then
-        local sc_dir="${REPO_ROOT}/packages/core/synapse-core"
+    # Pre-seed local sources only when not already staged in packages/.../src/
+    local sc_dir="${REPO_ROOT}/packages/core/synapse-core"
+    if [[ ! -d "${sc_dir}/src/synapse" ]] && [[ -d "/home/ebaymlay/work/synapse" ]]; then
         mkdir -p "${sc_dir}/src"
-        rm -rf "${sc_dir}/src/synapse"
         cp -al "/home/ebaymlay/work/synapse" "${sc_dir}/src/synapse"
+    fi
+    if [[ -d "${sc_dir}/src" ]]; then
         cp -f "${sc_dir}/synapse.service" "${sc_dir}/synapse-sync.service" "${sc_dir}/synapse-sync.timer" "${sc_dir}/src/"
     fi
 
-    if [[ -d "${REPO_ROOT}/../llm-quickfire-panel" ]]; then
-        local qf_dir="${REPO_ROOT}/packages/desktop/llm-quickfire-panel"
+    local qf_dir="${REPO_ROOT}/packages/desktop/llm-quickfire-panel"
+    if [[ ! -d "${qf_dir}/src/llm-quickfire-panel" ]] && [[ -d "${REPO_ROOT}/../llm-quickfire-panel" ]]; then
         mkdir -p "${qf_dir}/src"
-        rm -rf "${qf_dir}/src/llm-quickfire-panel"
         cp -af "${REPO_ROOT}/../llm-quickfire-panel" "${qf_dir}/src/llm-quickfire-panel"
     fi
 
-    if [[ -d "${REPO_ROOT}/../ps2-startup" ]]; then
-        local ps2_dir="${REPO_ROOT}/packages/desktop/synapse-theme-ps2"
+    local ps2_dir="${REPO_ROOT}/packages/desktop/synapse-theme-ps2"
+    if [[ ! -d "${ps2_dir}/src/synapse-cli/ps2-startup" ]] && [[ -d "${REPO_ROOT}/../ps2-startup" ]]; then
         mkdir -p "${ps2_dir}/src/synapse-cli"
-        rm -rf "${ps2_dir}/src/synapse-cli/ps2-startup"
         cp -af "${REPO_ROOT}/../ps2-startup" "${ps2_dir}/src/synapse-cli/ps2-startup"
     fi
 

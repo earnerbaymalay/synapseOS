@@ -33,12 +33,9 @@ package() {
     cp -r themes/* "$pkgdir/usr/share/llm-quickfire-panel/themes/"
   fi
 
-  # Install XDG autostart desktop entry
-  if [[ -f "config/llm-quickfire-panel.desktop" ]]; then
-    install -Dm644 "config/llm-quickfire-panel.desktop" "$pkgdir/etc/xdg/autostart/llm-quickfire-panel.desktop"
-  else
-    install -dm755 "$pkgdir/etc/xdg/autostart"
-    cat > "$pkgdir/etc/xdg/autostart/llm-quickfire-panel.desktop" << 'EOF'
+  # Install XDG autostart desktop entry (always enforce /usr/bin/quickfire --autostart)
+  install -dm755 "$pkgdir/etc/xdg/autostart"
+  cat > "$pkgdir/etc/xdg/autostart/llm-quickfire-panel.desktop" << 'EOF'
 [Desktop Entry]
 Type=Application
 Name=LLM Quickfire Panel
@@ -47,9 +44,10 @@ Exec=/usr/bin/quickfire --autostart
 Icon=utilities-terminal
 Terminal=false
 Categories=Utility;ArtificialIntelligence;
+StartupNotify=false
+Hidden=false
 X-GNOME-Autostart-enabled=true
 EOF
-  fi
 
   # Install shell completions if available
   if [[ -d "completions" ]]; then

@@ -17,10 +17,11 @@
 - [x] Enforce Prime Directive network stealth posture: full Wi-Fi scan & session MAC randomization, RFC 4941 IPv6 privacy extensions, Quad9 DNS-over-TLS (`9.9.9.9` / `149.112.112.112`), and firewalld drop posture.
 
 ## Phase 3: Cyberdeck Desktop Interface & Seamless Transitions (Completed)
-- [x] Package unified Catppuccin Mocha Mauve + PS2 Cyber Blue GTK, xfwm4, Kitty, and icon themes.
+- [x] Package unified Catppuccin Mocha Mauve + Liquid Silver Chrome GTK, xfwm4, Kitty, and icon themes.
 - [x] Implement PS2 BIOS -> SDDM (`ps2-xfce`) -> XFCE 4.20 zero-blackout visual hand-off.
 - [x] Configure Picom compositor (`overlay/etc/xdg/picom.conf`) with `dual_kawase` blur and rounded corners.
-- [x] Bind standalone Super-key HUD toggle (`xcape`) and autostart `llm-quickfire-panel`.
+- [x] Configure optional Sway/Wayland tiling session (`overlay/etc/skel/.config/sway/config` & `waybar/{config.jsonc,style.css}`).
+- [x] Bind standalone Super-key HUD toggle (`xcape` / `Mod4+space` / `Mod4+d`) and autostart `llm-quickfire-panel`.
 
 ## Phase 4: Archiso Live ISO Profile & Build Tooling (Completed)
 - [x] Create `build/archiso/` profile (`profiledef.sh`, `packages.x86_64`, `pacman.conf`, UEFI `systemd-boot` & BIOS `syslinux` bootloaders, `customize_airootfs.sh`).
@@ -29,6 +30,6 @@
 
 ## Phase 5: Calamares Installer & Release Automation (Completed)
 - [x] Configure Calamares installer module sequence (`packages/installer/calamares/settings.conf`).
-- [x] Author SynapseOS Calamares branding (`branding/synapseos/branding.desc`) with PS2 Cyber Blue (`#00a8ff`) and Catppuccin Mocha Mauve (`#cba6f7`) styling.
+- [x] Author SynapseOS Calamares branding (`branding/synapseos/branding.desc`) with Catppuccin Mocha Mauve (`#cba6f7`), Liquid Silver Chrome (`#cdd6f4`), and Obsidian Crust (`#11111b`) styling.
 - [x] Configure Btrfs (`zstd` subvolumes `@`, `@home`, `@snapshots`, `@var_log`) and Ext4 (`noatime`) partitioning presets (`modules/partition.conf`) and mandatory systemd services (`modules/services-systemd.conf`).
 - [x] Build automated GitHub Actions CI/CD workflow (`.github/workflows/build-iso.yml`) running Gate G1–G4 verification, container ISO builds, `SHA256SUMS`, and tagged GitHub Releases.

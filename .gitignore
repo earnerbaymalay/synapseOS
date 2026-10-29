@@ -4,6 +4,7 @@
 # ISO Builds & Working Root Filesystems
 build/work/
 build/out/
+out/
 *.iso
 *.iso.sig
 *.iso.sha256

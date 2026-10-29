@@ -37,8 +37,13 @@ alias lg='lazygit'
 alias grep='grep --color=auto'
 alias ip='ip -color=auto'
 alias diff='diff --color=auto'
-alias clip='xclip -selection clipboard'
-alias clippaste='xclip -selection clipboard -o'
+if [[ -n "${WAYLAND_DISPLAY:-}" ]] && command -v wl-copy >/dev/null 2>&1; then
+    alias clip='wl-copy'
+    alias clippaste='wl-paste'
+else
+    alias clip='xclip -selection clipboard'
+    alias clippaste='xclip -selection clipboard -o'
+fi
 
 # Yazi directory-changing wrapper
 y() {
@@ -159,7 +164,7 @@ alias ollama-flush='ollama-stop'
 
 # --- 6. Security & System Telemetry Shortcuts ---
 alias ananicy-status='systemctl status ananicy-cpp --no-pager'
-alias oom-status='systemctl status nohang-desktop --no-pager'
+alias zram-status='zramctl'
 alias syn-status='systemctl status synapse --no-pager'
 alias sec-dns='resolvectl status'
 

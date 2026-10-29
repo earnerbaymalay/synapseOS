@@ -1,0 +1,73 @@
+/* =============================================================================
+ * ~/.config/waybar/style.css — SynapseOS Cyberdeck Waybar Stylesheet
+ * Palette:
+ *   Obsidian Crust       : #11111b
+ *   Catppuccin Base      : #1e1e2e
+ *   Catppuccin Mauve     : #cba6f7
+ *   Liquid Silver Chrome : #cdd6f4
+ * ============================================================================= */
+
+* {
+    border: none;
+    border-radius: 0;
+    font-family: "JetBrainsMono Nerd Font Mono", monospace;
+    font-size: 12px;
+    min-height: 0;
+}
+
+window#waybar {
+    background-color: #11111b;
+    border-bottom: 2px solid #cba6f7;
+    color: #cdd6f4;
+}
+
+#workspaces button {
+    padding: 0 10px;
+    background-color: #11111b;
+    color: #cdd6f4;
+    border-bottom: 2px solid transparent;
+}
+
+#workspaces button:hover {
+    background-color: #1e1e2e;
+    color: #cba6f7;
+}
+
+#workspaces button.focused {
+    background-color: #1e1e2e;
+    color: #cba6f7;
+    border-bottom: 2px solid #cba6f7;
+}
+
+#workspaces button.urgent {
+    background-color: #1e1e2e;
+    color: #cba6f7;
+}
+
+#mode,
+#clock,
+#custom-synapse,
+#cpu,
+#memory,
+#network,
+#pulseaudio,
+#battery,
+#tray {
+    padding: 0 10px;
+    margin: 2px 2px;
+    background-color: #1e1e2e;
+    color: #cdd6f4;
+    border: 1px solid #cba6f7;
+}
+
+#custom-synapse {
+    background-color: #11111b;
+    color: #cba6f7;
+    font-weight: bold;
+}
+
+#clock {
+    background-color: #11111b;
+    color: #cdd6f4;
+    font-weight: bold;
+}

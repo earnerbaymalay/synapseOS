@@ -1,0 +1,81 @@
+// =============================================================================
+// ~/.config/waybar/config.jsonc — SynapseOS Waybar Status Bar Configuration
+// Palette: Obsidian Crust (#11111b), Base (#1e1e2e), Mauve (#cba6f7), Silver (#cdd6f4)
+// =============================================================================
+{
+    "layer": "top",
+    "position": "top",
+    "height": 32,
+    "spacing": 8,
+    "modules-left": [
+        "sway/workspaces",
+        "sway/mode",
+        "sway/window"
+    ],
+    "modules-center": [
+        "clock"
+    ],
+    "modules-right": [
+        "custom/synapse",
+        "cpu",
+        "memory",
+        "network",
+        "pulseaudio",
+        "battery",
+        "tray"
+    ],
+    "sway/workspaces": {
+        "disable-scroll": true,
+        "all-outputs": true,
+        "format": "{name}"
+    },
+    "sway/mode": {
+        "format": "<span style=\"italic\">{}</span>"
+    },
+    "sway/window": {
+        "max-length": 60,
+        "separate-outputs": true
+    },
+    "clock": {
+        "format": "{:%Y-%m-%d  %H:%M:%S}",
+        "interval": 1,
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
+    },
+    "custom/synapse": {
+        "exec": "curl -sf http://127.0.0.1:8000/health >/dev/null 2>&1 && echo 'SYNAPSE: ONLINE' || echo 'SYNAPSE: STANDBY'",
+        "interval": 15,
+        "on-click": "/usr/bin/quickfire",
+        "tooltip": false
+    },
+    "cpu": {
+        "format": "CPU {usage}%",
+        "tooltip": false
+    },
+    "memory": {
+        "format": "RAM {}%"
+    },
+    "network": {
+        "format-wifi": "NET {essid} ({signalStrength}%)",
+        "format-ethernet": "NET {ipaddr}/{cidr}",
+        "format-linked": "NET {ifname} (No IP)",
+        "format-disconnected": "NET OFFLINE",
+        "tooltip-format": "{ifname} via {gwaddr}"
+    },
+    "pulseaudio": {
+        "format": "VOL {volume}%",
+        "format-muted": "VOL MUTED",
+        "on-click": "pavucontrol"
+    },
+    "battery": {
+        "states": {
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "BAT {capacity}%",
+        "format-charging": "CHG {capacity}%",
+        "format-plugged": "AC {capacity}%"
+    },
+    "tray": {
+        "spacing": 10
+    }
+}
