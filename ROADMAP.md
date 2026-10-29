@@ -33,3 +33,14 @@
 - [x] Author SynapseOS Calamares branding (`branding/synapseos/branding.desc`) with Catppuccin Mocha Mauve (`#cba6f7`), Liquid Silver Chrome (`#cdd6f4`), and Obsidian Crust (`#11111b`) styling.
 - [x] Configure Btrfs (`zstd` subvolumes `@`, `@home`, `@snapshots`, `@var_log`) and Ext4 (`noatime`) partitioning presets (`modules/partition.conf`) and mandatory systemd services (`modules/services-systemd.conf`).
 - [x] Build automated GitHub Actions CI/CD workflow (`.github/workflows/build-iso.yml`) running Gate G1–G4 verification, container ISO builds, `SHA256SUMS`, and tagged GitHub Releases.
+
+## Phase 6: V4 Visual Identity & Live ISO Hardening (In Progress)
+- [x] Package `synapse-themes`: 5 SynapseOS wallpapers (`/usr/share/backgrounds/synapseos/`, 1376x768 renders), `synapse-theme` switcher (`obsidian-mauve` default, `ristretto-tungsten`, `crimson-carbon`, `platinum-chrome`, `obsidian-basalt` unbranded) bound to `Super+Ctrl+T` in XFCE and Sway.
+- [x] `synapse-screensaver`: braille geodesic torus + SYNAPSE brand reveal (`tte` when installed); 5-minute idle trigger via `swayidle` (Sway) and `synapse-idle` (XFCE). Not a screen lock.
+- [x] Verify CachyOS package signatures (drop `Optional TrustAll`; ship `cachyos-keyring`; isolated, fingerprint-pinned build keyring).
+- [x] Generate pacman keyring per boot (`pacman-init.service`) instead of baking a master key into the ISO.
+- [x] Calamares `shellprocess@cleanup`: remove live NOPASSWD sudoers + passwordless live user, fresh keyring on install; `users.conf` wheel sudo with password.
+- [x] Resolve pacstrap file conflicts (`Xsetup-synapseos`, Calamares config applied after `cachyos-calamares`).
+- [ ] Calamares initramfs regeneration (`initcpiocfg`/`initcpio`) and archiso hook removal for installed systems.
+- [ ] Native 4K re-renders of the V4 wallpapers.
+- [ ] Stage C: full `mkarchiso` build + QEMU/KVM boot verification; Stage D: `v0.1.0-alpha` release.

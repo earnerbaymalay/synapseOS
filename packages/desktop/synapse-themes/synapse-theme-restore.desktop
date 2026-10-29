@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=SynapseOS Theme
+Comment=Restore the SynapseOS wallpaper and palette, bind Super+Ctrl+T theme menu
+Exec=/usr/bin/synapse-theme --restore --register-shortcut
+OnlyShowIn=XFCE;
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

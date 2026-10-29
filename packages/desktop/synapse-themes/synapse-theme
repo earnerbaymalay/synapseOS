@@ -1,0 +1,190 @@
+#!/usr/bin/env bash
+# synapse-theme — SynapseOS system theme switcher (wallpaper + Kitty + Rofi palette)
+# Usage: synapse-theme [THEME] | --menu | --restore | --list | --register-shortcut
+set -euo pipefail
+
+WALLPAPER_DIR="/usr/share/backgrounds/synapseos"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}"
+STATE_FILE="${CONFIG_DIR}/synapse/theme"
+# Shared with quickfire-theme so Kitty/Rofi pick up whichever switcher ran last
+KITTY_THEME_FILE="${CONFIG_DIR}/kitty/quickfire-colors.conf"
+ROFI_THEME_FILE="${CONFIG_DIR}/rofi/quickfire-theme.rasi"
+DEFAULT_THEME="obsidian-mauve"
+XFCE_SHORTCUT="<Primary><Super>t"
+
+# id|label|wallpaper|base|surface|accent|secondary
+THEMES=(
+    "obsidian-mauve|Obsidian Mauve (Ultraviolet Mauve)|01-synapse-obsidian-mauve.jpg|#09090d|#181825|#cba6f7|#cdd6f4"
+    "ristretto-tungsten|Ristretto Tungsten (Molten Tungsten)|02-synapse-ristretto-tungsten.jpg|#09090d|#161412|#fab387|#a6adc8"
+    "crimson-carbon|Crimson Carbon (Crimson Ember)|03-synapse-crimson-carbon.jpg|#09090d|#14141d|#f38ba8|#bac2de"
+    "platinum-chrome|Platinum Chrome (Liquid Silver)|04-synapse-platinum-chrome.jpg|#08080c|#121216|#cdd6f4|#7f849c"
+    "obsidian-basalt|Obsidian Basalt (Unbranded, Mauve palette)|05-synapse-obsidian-unbranded.jpg|#09090d|#181825|#cba6f7|#cdd6f4"
+)
+
+lookup() {
+    local entry
+    for entry in "${THEMES[@]}"; do
+        if [[ "${entry%%|*}" == "$1" ]]; then
+            printf '%s\n' "$entry"
+            return 0
+        fi
+    done
+    return 1
+}
+
+set_wallpaper() {
+    local image="$1"
+    [[ -f "$image" ]] || return 0
+
+    if [[ -n "${SWAYSOCK:-}" ]] && command -v swaymsg >/dev/null 2>&1; then
+        swaymsg -q output '*' bg "$image" fill || true
+    fi
+
+    if command -v xfconf-query >/dev/null 2>&1 && [[ -n "${DISPLAY:-}" ]]; then
+        local props
+        props="$(xfconf-query -c xfce4-desktop -l 2>/dev/null | grep '/last-image$' || true)"
+        # Fresh session: xfdesktop hasn't written per-monitor props yet, so create them
+        if [[ -z "$props" ]] && command -v xrandr >/dev/null 2>&1; then
+            local mon
+            for mon in $(xrandr --listactivemonitors 2>/dev/null | awk 'NR>1 {print $NF}'); do
+                props+="/backdrop/screen0/monitor${mon}/workspace0/last-image"$'\n'
+            done
+        fi
+        local prop
+        while IFS= read -r prop; do
+            [[ -n "$prop" ]] || continue
+            xfconf-query -c xfce4-desktop -p "$prop" -n -t string -s "$image" 2>/dev/null \
+                || xfconf-query -c xfce4-desktop -p "$prop" -s "$image" || true
+            # 5 = zoomed (fill + crop, keeps aspect)
+            xfconf-query -c xfce4-desktop -p "${prop%/last-image}/image-style" -n -t int -s 5 2>/dev/null \
+                || xfconf-query -c xfce4-desktop -p "${prop%/last-image}/image-style" -s 5 || true
+        done <<< "$props"
+    fi
+}
+
+write_palettes() {
+    local base="$1" surface="$2" accent="$3" secondary="$4"
+    mkdir -p "$(dirname "$KITTY_THEME_FILE")" "$(dirname "$ROFI_THEME_FILE")"
+
+    # ANSI colors stay Catppuccin Mocha; the theme drives background, chrome and accent
+    cat << EOF > "$KITTY_THEME_FILE"
+# SynapseOS palette (written by synapse-theme)
+background ${base}
+foreground #cdd6f4
+selection_background ${surface}
+selection_foreground ${accent}
+cursor ${accent}
+active_border_color ${accent}
+color0 #45475a
+color8 #585b70
+color1 #f38ba8
+color9 #f38ba8
+color2 #a6e3a1
+color10 #a6e3a1
+color3 #f9e2af
+color11 #f9e2af
+color4 #89b4fa
+color12 #89b4fa
+color5 ${accent}
+color13 ${accent}
+color6 #94e2d5
+color14 #94e2d5
+color7 ${secondary}
+color15 #cdd6f4
+EOF
+
+    cat << EOF > "$ROFI_THEME_FILE"
+* {
+    bg-col:  ${base}ea;
+    bg-col-light: ${surface};
+    border-col: ${accent};
+    selected-col: ${surface};
+    blue: ${accent};
+    fg-col: #cdd6f4;
+    fg-col2: ${accent};
+    grey: ${secondary};
+    highlight: bold ${accent};
+    width: 760;
+    font: "JetBrainsMono Nerd Font 11";
+}
+element-text, element-icon { background-color: inherit; text-color: inherit; }
+window { height: 520px; border: 2px; border-color: @border-col; border-radius: 12px; background-color: @bg-col; padding: 18px; }
+mainbox { background-color: transparent; }
+inputbar { children: [prompt,entry]; background-color: @bg-col-light; border-radius: 8px; padding: 10px 14px; margin: 0px 0px 14px 0px; border: 1px; border-color: @border-col; }
+prompt { background-color: transparent; padding: 0px 10px 0px 0px; text-color: @fg-col2; font: "JetBrainsMono Nerd Font Bold 11"; }
+entry { background-color: transparent; text-color: @fg-col; placeholder: "Type a command or ask LLM directly..."; placeholder-color: @grey; }
+listview { background-color: transparent; columns: 1; lines: 12; spacing: 4px; }
+element { padding: 8px 12px; background-color: transparent; text-color: @fg-col; border-radius: 6px; }
+element selected { background-color: @selected-col; text-color: @fg-col2; border: 1px; border-color: @border-col; }
+EOF
+}
+
+apply_theme() {
+    local id="$1" quiet="${2:-0}" entry
+    if ! entry="$(lookup "$id")"; then
+        echo "synapse-theme: unknown theme '$id' (see --list)" >&2
+        return 1
+    fi
+    local label wallpaper base surface accent secondary
+    IFS='|' read -r id label wallpaper base surface accent secondary <<< "$entry"
+
+    mkdir -p "$(dirname "$STATE_FILE")"
+    printf '%s\n' "$id" > "$STATE_FILE"
+    write_palettes "$base" "$surface" "$accent" "$secondary"
+    set_wallpaper "${WALLPAPER_DIR}/${wallpaper}"
+
+    # Live reload running Kitty terminals
+    pkill -USR1 -x kitty 2>/dev/null || true
+
+    if [[ "$quiet" -eq 0 ]] && command -v notify-send >/dev/null 2>&1; then
+        notify-send -i preferences-desktop-theme "SynapseOS Theme" "Switched to ${label}" || true
+    fi
+}
+
+register_shortcut() {
+    command -v xfconf-query >/dev/null 2>&1 || return 0
+    local prop="/commands/custom/${XFCE_SHORTCUT}"
+    xfconf-query -c xfce4-keyboard-shortcuts -p "$prop" >/dev/null 2>&1 && return 0
+    xfconf-query -c xfce4-keyboard-shortcuts -p "$prop" -n -t string -s "synapse-theme --menu" || true
+}
+
+show_menu() {
+    local entry menu="" selected
+    for entry in "${THEMES[@]}"; do
+        IFS='|' read -r id label _ <<< "$entry"
+        menu+="${id} — ${label}"$'\n'
+    done
+    selected="$(printf '%s' "$menu" | rofi -dmenu -i -no-custom -p "SynapseOS Theme" -l "${#THEMES[@]}")" || return 0
+    if [[ -n "$selected" ]]; then
+        apply_theme "${selected%% —*}"
+    fi
+}
+
+case "${1:---menu}" in
+    --menu)
+        show_menu
+        ;;
+    --restore)
+        current="$(cat "$STATE_FILE" 2>/dev/null || true)"
+        lookup "${current:-$DEFAULT_THEME}" >/dev/null || current="$DEFAULT_THEME"
+        apply_theme "${current:-$DEFAULT_THEME}" 1
+        if [[ "${2:-}" == "--register-shortcut" ]]; then
+            register_shortcut
+        fi
+        ;;
+    --register-shortcut)
+        register_shortcut
+        ;;
+    --list)
+        for entry in "${THEMES[@]}"; do
+            IFS='|' read -r id label _ <<< "$entry"
+            printf '%-20s %s\n' "$id" "$label"
+        done
+        ;;
+    -h|--help)
+        sed -n '2,3p' "$0" | sed 's/^# \{0,1\}//'
+        ;;
+    *)
+        apply_theme "$1"
+        ;;
+esac

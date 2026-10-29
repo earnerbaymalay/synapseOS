@@ -70,6 +70,7 @@ EXPECTED_PKGBUILDS=(
     "${REPO_ROOT}/packages/core/synapse-core/PKGBUILD"
     "${REPO_ROOT}/packages/desktop/llm-quickfire-panel/PKGBUILD"
     "${REPO_ROOT}/packages/desktop/synapse-theme-ps2/PKGBUILD"
+    "${REPO_ROOT}/packages/desktop/synapse-themes/PKGBUILD"
 )
 
 for pkgbuild in "${EXPECTED_PKGBUILDS[@]}"; do
@@ -297,6 +298,7 @@ REQUIRED_PKGS=(
     "synapse-core"
     "llm-quickfire-panel"
     "synapse-theme-ps2"
+    "synapse-themes"
 )
 
 for pkg in "${REQUIRED_PKGS[@]}"; do
@@ -419,6 +421,21 @@ check_file_contains "${REPO_ROOT}/build/build-iso.sh" 'mkarchiso -v -C' "ISO bui
 check_file_lacks "${REPO_ROOT}/packages/desktop/synapse-theme-ps2/PKGBUILD" 'sddm/scripts/Xsetup"' "synapse-theme-ps2 does not claim sddm-owned scripts/Xsetup"
 check_file_contains "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-synapseos-ps2.conf" '^DisplayCommand=/usr/share/sddm/scripts/Xsetup-synapseos$' "SDDM DisplayCommand points at Xsetup-synapseos"
 check_file_lacks "${REPO_ROOT}/build/build-iso.sh" 'AIROOTFS_DIR\}/etc/calamares/' "Calamares config not staged over cachyos-calamares files"
+
+# V4 theme pack & screensaver
+THEMES_DIR="${REPO_ROOT}/packages/desktop/synapse-themes"
+for wp in 01-synapse-obsidian-mauve 02-synapse-ristretto-tungsten 03-synapse-crimson-carbon 04-synapse-platinum-chrome 05-synapse-obsidian-unbranded; do
+    check_file_contains "${THEMES_DIR}/PKGBUILD" "^  .${wp}\\.jpg.$" "synapse-themes ships ${wp}.jpg"
+done
+check_file_contains "${THEMES_DIR}/synapse-theme" '^DEFAULT_THEME="obsidian-mauve"$' "Default system theme is obsidian-mauve"
+check_file_contains "${THEMES_DIR}/synapse-theme" '<Primary><Super>t' "XFCE Super+Ctrl+T opens the theme menu"
+check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/sway/config" 'Ctrl\+t exec synapse-theme --menu' "Sway Super+Ctrl+T opens the theme menu"
+check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/sway/config" "synapse-screensaver --launch" "Sway idle launches the torus screensaver"
+if (cd "${THEMES_DIR}" && makepkg --verifysource --skippgpcheck >/dev/null 2>&1); then
+    pass "synapse-themes sha256sums match sources"
+else
+    fail "synapse-themes sha256sums match sources (run updpkgsums in ${THEMES_DIR#"${REPO_ROOT}/"})"
+fi
 
 # GitHub Actions workflow check
 GH_WORKFLOW="${REPO_ROOT}/.github/workflows/build-iso.yml"

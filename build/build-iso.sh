@@ -151,6 +151,7 @@ build_local_packages() {
         "${REPO_ROOT}/packages/core/synapse-core"
         "${REPO_ROOT}/packages/desktop/llm-quickfire-panel"
         "${REPO_ROOT}/packages/desktop/synapse-theme-ps2"
+        "${REPO_ROOT}/packages/desktop/synapse-themes"
     )
 
     for pkg_dir in "${pkg_dirs[@]}"; do
@@ -161,6 +162,9 @@ build_local_packages() {
                 local makepkg_flags=("-sf" "--noconfirm")
                 if [[ -d "${pkg_dir}/src" ]] && [[ -n "$(ls -A "${pkg_dir}/src" 2>/dev/null)" ]]; then
                     makepkg_flags=("-ef" "--noconfirm" "--nodeps")
+                elif ! grep -q '^makedepends=' PKGBUILD; then
+                    # Nothing to compile: don't install runtime deps on the build host
+                    makepkg_flags=("-f" "--noconfirm" "--nodeps")
                 fi
                 if [[ "${EUID}" -eq 0 ]]; then
                     chown -R nobody:nobody "${pkg_dir}"

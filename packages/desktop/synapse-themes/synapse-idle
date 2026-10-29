@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# synapse-idle — launch synapse-screensaver after X11 idle (XFCE session).
+# Sway uses swayidle instead. Not a screen lock. Timeout: SYNAPSE_IDLE_SECONDS (default 300).
+set -euo pipefail
+
+TIMEOUT_MS=$(( ${SYNAPSE_IDLE_SECONDS:-300} * 1000 ))
+
+[[ "${XDG_SESSION_TYPE:-x11}" == "x11" && -n "${DISPLAY:-}" ]] || exit 0
+command -v xprintidle >/dev/null 2>&1 || exit 0
+
+while sleep 15; do
+    idle="$(xprintidle 2>/dev/null || echo 0)"
+    if (( idle >= TIMEOUT_MS )); then
+        # --launch is a no-op while an instance already holds the lock
+        synapse-screensaver --launch || true
+    fi
+done

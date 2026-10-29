@@ -3,7 +3,7 @@
 **Project:** SynapseOS (`https://github.com/earnerbaymalay/synapseOS`)  
 **Workspace Root:** `/home/ebaymlay/Desktop/AI CLI WORK/synapseOS`  
 **Assigned Model:** Gemini 4 Argon (High Reasoning)  
-**Handover Status:** Phases 1–5 + Stage A (`[synapseos]` Native Package Compilation) & Stage B (Archiso Staging & CachyOS Mirrorlists/Keyring) Complete (**120/120 Gates Passing**)
+**Handover Status:** Phases 1–5 + Stage A (`[synapseos]` Native Package Compilation) & Stage B (Archiso Staging & CachyOS Mirrorlists/Keyring) Complete; Stage C in progress (**168/168 Gates Passing**)
 
 ---
 
@@ -20,7 +20,8 @@ All structural specifications, packaging recipes, system overlays, and live ISO 
 | **Cyberdeck Desktop & User Skel** | [`overlay/etc/skel/`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/overlay/etc/skel) & [`picom.conf`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/overlay/etc/xdg/picom.conf) | Ready (`dual_kawase` blur, Kitty transparency, Sway/Waybar dual-session, `.synapse/config.toml`, `.bashrc`) |
 | **Archiso Live Profile** | [`build/archiso/`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/build/archiso) & [`build/build-iso.sh`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/build/build-iso.sh) | Ready (`linux-cachyos`, UEFI `systemd-boot` + BIOS `syslinux`, `customize_airootfs.sh`) |
 | **Calamares Installer** | [`packages/installer/calamares/`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/packages/installer/calamares) | Ready (Catppuccin Mauve + Liquid Silver Chrome + Obsidian Crust branding, Btrfs `@`/`@home`/`@snapshots` zstd layout) |
-| **Verification Gate Suite** | [`build/verify-gates.sh`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/build/verify-gates.sh) | **120/120 Checks Passing** |
+| **V4 Theme Pack & Screensaver** | [`packages/desktop/synapse-themes/`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/packages/desktop/synapse-themes) | Ready (5 wallpapers, `synapse-theme` switcher on `Super+Ctrl+T`, geodesic torus `synapse-screensaver`) |
+| **Verification Gate Suite** | [`build/verify-gates.sh`](file:///home/ebaymlay/Desktop/AI%20CLI%20WORK/synapseOS/build/verify-gates.sh) | **168/168 Checks Passing** |
 
 ---
 
@@ -49,4 +50,4 @@ Now that the workspace is open in **Antigravity IDE**, the IDE agent (running **
 
 Paste this into the Antigravity IDE agent panel to begin immediately:
 
-> Read `IDE_HANDOVER.md`, `ROADMAP.md`, and `docs/ARCHITECTURE.md`. Run `./build/verify-gates.sh`, verify the compiled `[synapseos]` repository packages in `out/repo/` (`synapse-core`, `llm-quickfire-panel`, `synapse-theme-ps2`, `synapseos.db.tar.gz`) and staged `airootfs` from Stages A & B, then proceed to Stage C & Stage D: build the bootable Live ISO (`./build/build-iso.sh`), verify QEMU/KVM boot, and prepare the `v0.1.0-alpha` release artifacts (`out/SHA256SUMS`).
+> Read `IDE_HANDOVER.md`, `ROADMAP.md`, and `docs/ARCHITECTURE.md`. Run `./build/verify-gates.sh`, verify the compiled `[synapseos]` repository packages in `out/repo/` (`synapse-core`, `llm-quickfire-panel`, `synapse-theme-ps2`, `synapse-themes`, `synapseos.db.tar.gz`) and staged `airootfs` from Stages A & B, then proceed to Stage C & Stage D: build the bootable Live ISO (`./build/build-iso.sh`), verify QEMU/KVM boot, and prepare the `v0.1.0-alpha` release artifacts (`out/SHA256SUMS`).

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=SynapseOS Screensaver
+Comment=Geodesic torus and SYNAPSE brand screensaver
+Exec=/usr/bin/synapse-screensaver --launch
+Icon=preferences-desktop-screensaver
+Terminal=false
+Categories=Utility;

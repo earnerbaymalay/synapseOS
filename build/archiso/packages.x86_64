@@ -73,6 +73,7 @@ kitty
 rofi
 xcape
 xclip
+xprintidle
 xdg-user-dirs
 xdg-utils
 papirus-icon-theme
@@ -154,3 +155,4 @@ bluez-utils
 synapse-core
 llm-quickfire-panel
 synapse-theme-ps2
+synapse-themes

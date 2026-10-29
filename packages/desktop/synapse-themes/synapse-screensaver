@@ -1,0 +1,311 @@
+#!/usr/bin/env python3
+"""synapse-screensaver — SynapseOS terminal screensaver.
+
+Alternates a rotating geodesic torus (braille wireframe on OLED black) with a
+SYNAPSE brand reveal. Uses `tte` (terminaltexteffects) for the brand reveal when
+installed, otherwise a built-in decrypt effect. Any key exits. Stdlib only.
+
+  synapse-screensaver            run in the current terminal
+  synapse-screensaver --launch   open fullscreen in kitty (or foot)
+"""
+
+import argparse
+import fcntl
+import math
+import os
+import random
+import select
+import shutil
+import signal
+import subprocess
+import sys
+import termios
+import time
+import tty
+
+LOCK_PATH = os.path.join(os.environ.get("XDG_RUNTIME_DIR", "/tmp"), "synapse-screensaver.lock")
+THEME_FILE = os.path.join(
+    os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config")), "synapse", "theme"
+)
+ACCENTS = {
+    "obsidian-mauve": "#cba6f7",
+    "obsidian-basalt": "#cba6f7",
+    "ristretto-tungsten": "#fab387",
+    "crimson-carbon": "#f38ba8",
+    "platinum-chrome": "#cdd6f4",
+}
+FPS = 30
+TORUS_SECONDS = 40
+BRAND_SECONDS = 12
+
+# Braille dot bits indexed [y][x] within a 2x4 cell
+DOTS = ((0x01, 0x08), (0x02, 0x10), (0x04, 0x20), (0x40, 0x80))
+
+GLYPHS = {
+    "S": ["█████", "█    ", "█████", "    █", "█████"],
+    "Y": ["█   █", " █ █ ", "  █  ", "  █  ", "  █  "],
+    "N": ["█   █", "██  █", "█ █ █", "█  ██", "█   █"],
+    "A": [" ███ ", "█   █", "█████", "█   █", "█   █"],
+    "P": ["████ ", "█   █", "████ ", "█    ", "█    "],
+    "E": ["█████", "█    ", "████ ", "█    ", "█████"],
+}
+NOISE = "!@#$%&*+=?<>/\\|01░▒▓"
+
+
+def hex_rgb(value):
+    value = value.lstrip("#")
+    return tuple(int(value[i : i + 2], 16) for i in (0, 2, 4))
+
+
+def fg(rgb):
+    return "\x1b[38;2;%d;%d;%dm" % rgb
+
+
+def scale_rgb(rgb, k):
+    return tuple(int(c * k) for c in rgb)
+
+
+def accent_rgb():
+    try:
+        with open(THEME_FILE) as fh:
+            return hex_rgb(ACCENTS.get(fh.read().strip(), ACCENTS["obsidian-mauve"]))
+    except OSError:
+        return hex_rgb(ACCENTS["obsidian-mauve"])
+
+
+class Terminal:
+    """Raw-ish terminal: alt screen, hidden cursor, non-blocking key detection."""
+
+    def __enter__(self):
+        self.fd = sys.stdin.fileno()
+        self.saved = termios.tcgetattr(self.fd)
+        tty.setcbreak(self.fd)
+        sys.stdout.write("\x1b[?1049h\x1b[?25l\x1b[48;2;0;0;0m\x1b[2J")
+        sys.stdout.flush()
+        return self
+
+    def __exit__(self, *exc):
+        sys.stdout.write("\x1b[0m\x1b[2J\x1b[?25h\x1b[?1049l")
+        sys.stdout.flush()
+        termios.tcsetattr(self.fd, termios.TCSADRAIN, self.saved)
+
+    def key_pressed(self, timeout=0.0):
+        ready, _, _ = select.select([self.fd], [], [], timeout)
+        if ready:
+            os.read(self.fd, 64)
+            return True
+        return False
+
+    @staticmethod
+    def size():
+        size = shutil.get_terminal_size((120, 40))
+        return size.columns, size.lines
+
+
+def torus_mesh(major=2.0, minor=0.85, rings=9, segments=22):
+    """Wireframe points: `rings` circles around the hole, `segments` circles around the tube."""
+    points = []
+    for i in range(rings):
+        v = 2 * math.pi * i / rings
+        for k in range(220):
+            u = 2 * math.pi * k / 220
+            points.append((u, v))
+    for j in range(segments):
+        u = 2 * math.pi * j / segments
+        for k in range(80):
+            v = 2 * math.pi * k / 80
+            points.append((u, v))
+    return [
+        ((major + minor * math.cos(v)) * math.cos(u), minor * math.sin(v), (major + minor * math.cos(v)) * math.sin(u))
+        for u, v in points
+    ]
+
+
+def render_torus(mesh, angle_a, angle_b, cols, rows, accent):
+    pw, ph = cols * 2, rows * 4
+    cx, cy = pw / 2, ph / 2
+    scale = 0.95 * min(pw, ph)
+    camera = 7.0
+    extent = 2.85
+    ca, sa, cb, sb = math.cos(angle_a), math.sin(angle_a), math.cos(angle_b), math.sin(angle_b)
+
+    cells = {}
+    for x, y, z in mesh:
+        y1 = y * ca - z * sa
+        z1 = y * sa + z * ca
+        x2 = x * cb + z1 * sb
+        z2 = -x * sb + z1 * cb
+        inv = 1.0 / (z2 + camera)
+        px = int(cx + scale * x2 * inv)
+        py = int(cy - scale * y1 * inv)
+        if 0 <= px < pw and 0 <= py < ph:
+            key = (py >> 2, px >> 1)
+            mask, depth = cells.get(key, (0, 99.0))
+            cells[key] = (mask | DOTS[py & 3][px & 1], min(depth, z2))
+
+    # Nearer strands glow brighter: 6 shade levels from 30% to 100% of the accent
+    shades = [fg(scale_rgb(accent, 0.3 + 0.14 * level)) for level in range(6)]
+    out = []
+    for row in range(rows):
+        line, current = [], None
+        for col in range(cols):
+            cell = cells.get((row, col))
+            if cell is None:
+                line.append(" ")
+                continue
+            level = min(5, max(0, int((extent - cell[1]) / (2 * extent) * 6)))
+            if level != current:
+                line.append(shades[level])
+                current = level
+            line.append(chr(0x2800 + cell[0]))
+        out.append("".join(line))
+    return "\x1b[H" + "\n".join(out)
+
+
+def logo_lines(cols):
+    wide = cols >= 92
+    lines = []
+    for r in range(5):
+        parts = []
+        for ch in "SYNAPSE":
+            row = GLYPHS[ch][r]
+            parts.append("".join(c * 2 for c in row) if wide else row)
+        lines.append(("  " if wide else " ").join(parts))
+    return lines
+
+
+def brand_tte(cols, rows):
+    """Brand reveal through terminaltexteffects; returns False if unavailable/failed."""
+    if not shutil.which("tte"):
+        return False
+    lines = logo_lines(cols) + ["", "S Y N A P S E   O S".center(len(logo_lines(cols)[0]))]
+    pad_left = max(0, (cols - len(lines[0])) // 2)
+    text = "\n" * max(0, (rows - len(lines)) // 2) + "\n".join(" " * pad_left + l for l in lines)
+    sys.stdout.write("\x1b[2J\x1b[H")
+    sys.stdout.flush()
+    effect = random.choice(["decrypt", "beams", "matrix", "synthgrid"])
+    try:
+        return subprocess.run(["tte", effect], input=text, text=True, timeout=BRAND_SECONDS + 20).returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def brand_builtin(term, accent, seconds):
+    cols, rows = term.size()
+    lines = logo_lines(cols)
+    subtitle = "S Y N A P S E   O S"
+    top = max(0, (rows - len(lines) - 2) // 2)
+    left = max(0, (cols - len(lines[0])) // 2)
+    targets = [
+        (top + r, left + c, ch, random.uniform(0.3, 2.6))
+        for r, line in enumerate(lines)
+        for c, ch in enumerate(line)
+        if ch != " " and left + c < cols
+    ]
+    bright, dim, glint = fg(accent), fg(scale_rgb(accent, 0.35)), fg((255, 255, 255))
+    start = time.monotonic()
+    while time.monotonic() - start < seconds:
+        t = time.monotonic() - start
+        sweep = (t - 3.0) * 40  # diagonal glint after the reveal settles
+        buf = ["\x1b[2J"]
+        for row, col, ch, resolve_at in targets:
+            if t < resolve_at:
+                buf.append("\x1b[%d;%dH%s%s" % (row + 1, col + 1, dim, random.choice(NOISE)))
+            else:
+                color = glint if 0 <= sweep - (col - left) - (row - top) * 2 < 3 else bright
+                buf.append("\x1b[%d;%dH%s%s" % (row + 1, col + 1, color, ch))
+        if t > 2.6:
+            buf.append(
+                "\x1b[%d;%dH%s%s" % (top + len(lines) + 2, max(1, (cols - len(subtitle)) // 2 + 1), dim, subtitle)
+            )
+        sys.stdout.write("".join(buf))
+        sys.stdout.flush()
+        if term.key_pressed(1.0 / FPS):
+            return False
+    return True
+
+
+def run(mode):
+    lock = open(LOCK_PATH, "w")
+    try:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        return 0  # another instance is already showing
+
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+    signal.signal(signal.SIGHUP, lambda *_: sys.exit(0))
+    accent = accent_rgb()
+    mesh = torus_mesh()
+    angle_a, angle_b = 0.0, 0.0
+    show_torus = mode != "brand"
+
+    with Terminal() as term:
+        while True:
+            if show_torus:
+                start = time.monotonic()
+                while mode == "torus" or time.monotonic() - start < TORUS_SECONDS:
+                    frame_start = time.monotonic()
+                    cols, rows = term.size()
+                    sys.stdout.write(render_torus(mesh, angle_a, angle_b, cols, rows, accent))
+                    sys.stdout.flush()
+                    angle_a += 0.021
+                    angle_b += 0.013
+                    wait = max(0.0, 1.0 / FPS - (time.monotonic() - frame_start))
+                    if term.key_pressed(wait):
+                        return 0
+                sys.stdout.write("\x1b[2J")
+            else:
+                cols, rows = term.size()
+                if not brand_tte(cols, rows):
+                    if not brand_builtin(term, accent, BRAND_SECONDS):
+                        return 0
+                elif term.key_pressed(2.0):
+                    return 0
+            if term.key_pressed(0):
+                return 0
+            if mode == "cycle":
+                show_torus = not show_torus
+
+
+def launch():
+    # Don't open a second fullscreen window if one is already up
+    try:
+        with open(LOCK_PATH, "w") as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            fcntl.flock(lock, fcntl.LOCK_UN)
+    except BlockingIOError:
+        return 0
+    except OSError:
+        pass
+
+    me = os.path.abspath(__file__)
+    if shutil.which("kitty"):
+        cmd = [
+            "kitty", "--class", "synapse-screensaver", "--start-as", "fullscreen",
+            "-o", "background=#000000", "-o", "background_opacity=1",
+            "-o", "window_padding_width=0", "-o", "hide_window_decorations=yes",
+            "-o", "confirm_os_window_close=0", me,
+        ]
+    elif shutil.which("foot"):
+        cmd = ["foot", "--fullscreen", "--app-id", "synapse-screensaver", "-o", "colors.background=000000", me]
+    else:
+        print("synapse-screensaver: kitty or foot is required for --launch", file=sys.stderr)
+        return 1
+    os.execvp(cmd[0], cmd)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="SynapseOS geodesic torus + brand screensaver")
+    parser.add_argument("--launch", action="store_true", help="open fullscreen in kitty/foot")
+    parser.add_argument("--mode", choices=["cycle", "torus", "brand"], default="cycle")
+    args = parser.parse_args()
+    if args.launch:
+        return launch()
+    if not sys.stdin.isatty():
+        print("synapse-screensaver: needs a terminal (use --launch)", file=sys.stderr)
+        return 1
+    return run(args.mode)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

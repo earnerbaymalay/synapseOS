@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=SynapseOS Screensaver Idle Watcher
+Comment=Start the geodesic torus screensaver after 5 minutes idle
+Exec=/usr/bin/synapse-idle
+OnlyShowIn=XFCE;
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

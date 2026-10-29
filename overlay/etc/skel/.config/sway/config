@@ -30,8 +30,11 @@ smart_borders on
 
 # --- Output & Idle Management ---
 output * bg #11111b solid_color
+exec synapse-theme --restore
 
+# Screensaver is not a lock: 5 min -> geodesic torus, 10 min -> displays off
 exec swayidle -w \
+    timeout 300 'synapse-screensaver --launch' \
     timeout 600 'swaymsg "output * power off"' \
     resume 'swaymsg "output * power on"'
 
@@ -49,6 +52,7 @@ bindsym Mod4+Return exec kitty
 bindsym Mod4+Shift+Return exec foot
 bindsym Mod4+space exec /usr/bin/quickfire
 bindsym Mod4+d exec /usr/bin/quickfire
+bindsym Mod4+Ctrl+t exec synapse-theme --menu
 
 # --- Keybindings: Session & Window Management ---
 bindsym Mod4+Shift+q kill
@@ -129,6 +133,9 @@ mode "resize" {
     bindsym Escape mode "default"
 }
 bindsym $mod+r mode "resize"
+
+# --- Screensaver Window ---
+for_window [app_id="synapse-screensaver"] fullscreen enable
 
 # --- Waybar Status Bar & Quickfire Autostart ---
 bar {
