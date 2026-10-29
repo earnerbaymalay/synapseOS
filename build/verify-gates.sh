@@ -42,6 +42,21 @@ check_file_contains() {
     fi
 }
 
+check_file_lacks() {
+    local file="$1"
+    local pattern="$2"
+    local description="$3"
+    if [[ ! -f "${file}" ]]; then
+        fail "${description} (file missing: ${file#"${REPO_ROOT}/"})"
+        return
+    fi
+    if grep -Pzq "${pattern}" "${file}"; then
+        fail "${description} (forbidden pattern '${pattern}' found in ${file#"${REPO_ROOT}/"})"
+    else
+        pass "${description}"
+    fi
+}
+
 echo "=============================================================================="
 echo " SynapseOS Engineering Verification Harness (Gates G1 - G4)"
 echo "=============================================================================="
@@ -387,6 +402,23 @@ check_file_contains "${CAL_SERVICES}" "sddm" "Calamares services-systemd.conf en
 check_file_contains "${CAL_SERVICES}" "firewalld" "Calamares services-systemd.conf enables firewalld service"
 check_file_contains "${CAL_UNPACKFS}" "/run/archiso/bootmnt/synapseos/x86_64/airootfs\.sfs" "Calamares unpackfs.conf targets /run/archiso/bootmnt/synapseos/x86_64/airootfs.sfs"
 check_file_contains "${CAL_UNPACKFS}" 'sourcefs:[[:space:]]*"squashfs"' "Calamares unpackfs.conf specifies squashfs sourcefs"
+
+# Package trust & live-session credential isolation
+check_file_lacks "${REPO_ROOT}/build/archiso/pacman.conf" '\[cachyos[^]]*\]\nSigLevel = Optional TrustAll' "Archiso pacman.conf verifies CachyOS package signatures"
+check_file_lacks "${REPO_ROOT}/overlay/etc/pacman.conf" '\[cachyos[^]]*\]\nSigLevel = Optional TrustAll' "Installed pacman.conf verifies CachyOS package signatures"
+check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^cachyos-keyring$' "Live ISO ships cachyos-keyring"
+check_file_lacks "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh" '(?m)^[[:space:]]*pacman-key --init' "No pacman master key baked into the ISO at build time"
+check_file_contains "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh" 'systemctl enable pacman-init\.service' "Live session generates its pacman keyring per boot"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" 'shellprocess@cleanup' "Calamares runs live-session cleanup"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" '00-synapse-live' "Calamares cleanup removes live NOPASSWD sudoers"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" 'userdel -r synapse' "Calamares cleanup removes passwordless live user"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/users.conf" '^sudoersGroup: wheel' "Installed users get password-protected wheel sudo"
+check_file_contains "${REPO_ROOT}/build/build-iso.sh" 'mkarchiso -v -C' "ISO build uses isolated build pacman.conf/keyring"
+
+# Package file-ownership conflicts (pacstrap aborts on these)
+check_file_lacks "${REPO_ROOT}/packages/desktop/synapse-theme-ps2/PKGBUILD" 'sddm/scripts/Xsetup"' "synapse-theme-ps2 does not claim sddm-owned scripts/Xsetup"
+check_file_contains "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-synapseos-ps2.conf" '^DisplayCommand=/usr/share/sddm/scripts/Xsetup-synapseos$' "SDDM DisplayCommand points at Xsetup-synapseos"
+check_file_lacks "${REPO_ROOT}/build/build-iso.sh" 'AIROOTFS_DIR\}/etc/calamares/' "Calamares config not staged over cachyos-calamares files"
 
 # GitHub Actions workflow check
 GH_WORKFLOW="${REPO_ROOT}/.github/workflows/build-iso.yml"

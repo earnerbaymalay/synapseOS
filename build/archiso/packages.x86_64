@@ -29,6 +29,7 @@ systemd-resolvconf
 # --- Kernel, Microarchitecture & Performance (CachyOS Layer) ---
 linux-cachyos
 linux-cachyos-headers
+cachyos-keyring
 ananicy-cpp
 cachyos-ananicy-rules
 zram-generator

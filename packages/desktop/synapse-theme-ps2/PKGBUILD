@@ -54,9 +54,10 @@ package() {
     install -Dm644 "sddm-theme/background.png" "$pkgdir/usr/share/backgrounds/synapseos/ps2-xfce-background.png"
   fi
 
-  # 5. Install SDDM Xsetup script wrapper invoking /usr/local/bin/ps2-system-boot
+  # 5. Install SDDM Xsetup-synapseos script wrapper invoking /usr/local/bin/ps2-system-boot
+  #    (own filename: sddm owns scripts/Xsetup; 10-synapseos-ps2.conf points DisplayCommand here)
   install -dm755 "$pkgdir/usr/share/sddm/scripts"
-  cat > "$pkgdir/usr/share/sddm/scripts/Xsetup" << 'EOF'
+  cat > "$pkgdir/usr/share/sddm/scripts/Xsetup-synapseos" << 'EOF'
 #!/bin/sh
 # Xsetup - run as root before the login dialog appears
 
@@ -72,7 +73,7 @@ if [ -x /usr/local/bin/ps2-system-boot ]; then
     /usr/local/bin/ps2-system-boot || true
 fi
 EOF
-  chmod 755 "$pkgdir/usr/share/sddm/scripts/Xsetup"
+  chmod 755 "$pkgdir/usr/share/sddm/scripts/Xsetup-synapseos"
 
   [[ -f "README.md" ]] && install -Dm644 "README.md" "$pkgdir/usr/share/doc/$pkgname/README.md"
 }

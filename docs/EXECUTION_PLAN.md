@@ -14,7 +14,7 @@ Compile all three native SynapseOS packages into the local `[synapseos]` reposit
 2. **`llm-quickfire-panel` (`packages/desktop/llm-quickfire-panel/PKGBUILD`)**:
    - Packages `/usr/bin/quickfire`, `/usr/bin/quickfire-theme`, command palette aliases (`agy-palette`, `llm-quickfire-panel`), 5 curated color palettes (PS2 Cyber Blue, Catppuccin Mocha Mauve, Tokyo Night, Nord, Cyberpunk), and `/etc/xdg/autostart/llm-quickfire-panel.desktop`.
 3. **`synapse-theme-ps2` (`packages/desktop/synapse-theme-ps2/PKGBUILD`)**:
-   - Packages the PlayStation 2 startup animation (`ps2_xfce_startup.mp4`, `/usr/bin/ps2-startup`, `/usr/local/bin/ps2-system-boot`), `eof-handoff.lua`, `/usr/share/sddm/scripts/Xsetup`, and the Qt6 SDDM theme `/usr/share/sddm/themes/ps2-xfce`.
+   - Packages the PlayStation 2 startup animation (`ps2_xfce_startup.mp4`, `/usr/bin/ps2-startup`, `/usr/local/bin/ps2-system-boot`), `eof-handoff.lua`, `/usr/share/sddm/scripts/Xsetup-synapseos`, and the Qt6 SDDM theme `/usr/share/sddm/themes/ps2-xfce`.
 4. **Repository Indexing**:
    - Run `repo-add -R out/repo/synapseos.db.tar.gz out/repo/*.pkg.tar.*`.
    - Sync `out/repo/` into `build/archiso/airootfs/var/cache/synapseos-repo/` and `/var/cache/synapseos-repo/` for `mkarchiso`.
@@ -26,7 +26,7 @@ Compile all three native SynapseOS packages into the local `[synapseos]` reposit
 1. **RootFS Overlay Synchronization (`./build/build-iso.sh --dry-run`)**:
    - Sync `overlay/etc/` into `build/archiso/airootfs/etc/` (including `99-synapseos.conf` ZRAM/BBR sysctl, `zram-generator.conf`, NetworkManager MAC randomization & RFC 4941 IPv6 stealth posture, Quad9 DoT `resolved.conf.d`, `picom.conf`, and `sddm.conf.d`).
    - Sync `overlay/etc/skel/` into `build/archiso/airootfs/etc/skel/`.
-   - Stage Calamares installer configs (`packages/installer/calamares/`) into `build/archiso/airootfs/etc/calamares/`.
+   - Stage Calamares installer configs (`packages/installer/calamares/`) into `build/archiso/airootfs/etc/synapseos/calamares/` (copied over `/etc/calamares` by `customize_airootfs.sh` after pacstrap).
 2. **CachyOS Mirrorlists & Keyring Preparation**:
    - Verify `/etc/pacman.d/cachyos-mirrorlist` and `/etc/pacman.d/cachyos-v3-mirrorlist` are staged in both `overlay/etc/pacman.d/` and `build/archiso/airootfs/etc/pacman.d/`.
    - Ensure `customize_airootfs.sh` initializes the Pacman keyring and imports/locally signs the CachyOS signing key (`F3B607488DB35A47`).

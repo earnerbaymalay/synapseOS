@@ -11,10 +11,16 @@ PROFILE_DIR="${SCRIPT_DIR}/archiso"
 AIROOTFS_DIR="${PROFILE_DIR}/airootfs"
 OVERLAY_DIR="${REPO_ROOT}/overlay"
 CALAMARES_SRC="${REPO_ROOT}/packages/installer/calamares"
-WORK_DIR="${WORK_DIR:-/tmp/synapseos-archiso-work}"
+# Disk-backed: /tmp is a RAM tmpfs and too small for a full airootfs
+WORK_DIR="${WORK_DIR:-/var/tmp/synapseos-archiso-work}"
 OUT_DIR="${OUT_DIR:-${REPO_ROOT}/out}"
 LOCAL_REPO_DIR="${LOCAL_REPO_DIR:-${OUT_DIR}/repo}"
 SYSTEM_REPO_DIR="/var/cache/synapseos-repo"
+# Isolated build keyring + pacman.conf: mkarchiso never touches the host keyring or /etc/pacman.d
+BUILD_STATE_DIR="/var/lib/synapseos-build"
+BUILD_GPGDIR="${BUILD_STATE_DIR}/gnupg"
+BUILD_PACMAN_CONF="${BUILD_STATE_DIR}/pacman.conf"
+CACHYOS_KEY_FPR="882DCFE48E2051D48E2562ABF3B607488DB35A47"
 
 DRY_RUN=0
 BUILD_PKGS=0
@@ -26,7 +32,7 @@ Usage: ./build/build-iso.sh [OPTIONS]
 Options:
   --dry-run, --check   Validate profile, stage overlays, and verify readiness without root/mkarchiso
   --build-pkgs         Build native PKGBUILDs under packages/ and populate local [synapseos] repo
-  -w, --work-dir DIR   Set archiso working directory (default: /tmp/synapseos-archiso-work)
+  -w, --work-dir DIR   Set archiso working directory (default: /var/tmp/synapseos-archiso-work)
   -o, --out-dir DIR    Set ISO output directory (default: ./out)
   -h, --help           Show this help message
 EOF
@@ -106,9 +112,12 @@ fi
 
 # 3. Stage Calamares installer configurations into airootfs
 if [[ -d "${CALAMARES_SRC}" ]]; then
-    echo "==> Staging Calamares configuration into ${AIROOTFS_DIR}/etc/calamares ..."
-    mkdir -p "${AIROOTFS_DIR}/etc/calamares"
-    cp -af "${CALAMARES_SRC}/." "${AIROOTFS_DIR}/etc/calamares/"
+    # Staged aside: cachyos-calamares owns /etc/calamares/*, so pacstrap would hit file
+    # conflicts. customize_airootfs.sh copies this over /etc/calamares after packages install.
+    echo "==> Staging Calamares configuration into ${AIROOTFS_DIR}/etc/synapseos/calamares ..."
+    rm -rf "${AIROOTFS_DIR}/etc/calamares"
+    mkdir -p "${AIROOTFS_DIR}/etc/synapseos/calamares"
+    cp -af "${CALAMARES_SRC}/." "${AIROOTFS_DIR}/etc/synapseos/calamares/"
 fi
 
 # 4. Optionally build local SynapseOS PKGBUILDs
@@ -185,22 +194,35 @@ if [[ "${DRY_RUN}" -eq 1 ]]; then
     bash -n "${PROFILE_DIR}/profiledef.sh"
     bash -n "${AIROOTFS_DIR}/root/customize_airootfs.sh"
     echo "==> [DRY-RUN] Archiso profile, CachyOS mirrorlists & RootFS overlay staged and validated."
-    echo "    Would execute: mkarchiso -v -w \"${WORK_DIR}\" -o \"${OUT_DIR}\" \"${PROFILE_DIR}\""
+    echo "    Would execute: mkarchiso -v -C \"${BUILD_PACMAN_CONF}\" -w \"${WORK_DIR}\" -o \"${OUT_DIR}\" \"${PROFILE_DIR}\""
     exit 0
 fi
 
-# 6. Prepare host CachyOS mirrorlists & [synapseos] repo for mkarchiso
+# 6. Prepare isolated build keyring, build pacman.conf & [synapseos] repo for mkarchiso
 prepare_host_build_env() {
     local priv_cmd=()
     if [[ "${EUID}" -ne 0 ]]; then
         priv_cmd=(sudo)
     fi
 
-    if [[ -d "${OVERLAY_DIR}/etc/pacman.d" ]]; then
-        echo "==> Installing CachyOS mirrorlists to host /etc/pacman.d/ for mkarchiso..."
-        "${priv_cmd[@]}" mkdir -p /etc/pacman.d
-        "${priv_cmd[@]}" cp -af "${OVERLAY_DIR}/etc/pacman.d/." /etc/pacman.d/
+    "${priv_cmd[@]}" install -d -m 0700 "${BUILD_STATE_DIR}"
+
+    if [[ ! -f "${BUILD_GPGDIR}/pubring.gpg" ]]; then
+        echo "==> Initializing isolated build keyring at ${BUILD_GPGDIR}..."
+        "${priv_cmd[@]}" pacman-key --gpgdir "${BUILD_GPGDIR}" --init
+        "${priv_cmd[@]}" pacman-key --gpgdir "${BUILD_GPGDIR}" --populate archlinux
     fi
+    if ! "${priv_cmd[@]}" gpg --homedir "${BUILD_GPGDIR}" --list-keys "${CACHYOS_KEY_FPR}" >/dev/null 2>&1; then
+        echo "==> Fetching CachyOS signing key ${CACHYOS_KEY_FPR}..."
+        "${priv_cmd[@]}" pacman-key --gpgdir "${BUILD_GPGDIR}" --keyserver hkps://keyserver.ubuntu.com --recv-keys "${CACHYOS_KEY_FPR}"
+        "${priv_cmd[@]}" pacman-key --gpgdir "${BUILD_GPGDIR}" --lsign-key "${CACHYOS_KEY_FPR}"
+    fi
+
+    echo "==> Writing build pacman.conf to ${BUILD_PACMAN_CONF}..."
+    # DisableDownloadTimeout: tolerate slow/tethered links (build-only, not shipped)
+    sed -e "/^\[options\]/a GPGDir = ${BUILD_GPGDIR}\nDisableDownloadTimeout" \
+        -e "s|^Include = /etc/pacman.d/cachyos|Include = ${OVERLAY_DIR}/etc/pacman.d/cachyos|" \
+        "${PROFILE_DIR}/pacman.conf" | "${priv_cmd[@]}" tee "${BUILD_PACMAN_CONF}" >/dev/null
 
     if [[ -d "${LOCAL_REPO_DIR}" ]]; then
         echo "==> Syncing local [synapseos] repository to ${SYSTEM_REPO_DIR}..."
@@ -220,9 +242,9 @@ mkdir -p "${OUT_DIR}"
 
 if [[ "${EUID}" -ne 0 ]]; then
     echo "==> Elevating privileges via sudo to run mkarchiso..."
-    sudo mkarchiso -v -w "${WORK_DIR}" -o "${OUT_DIR}" "${PROFILE_DIR}"
+    sudo mkarchiso -v -C "${BUILD_PACMAN_CONF}" -w "${WORK_DIR}" -o "${OUT_DIR}" "${PROFILE_DIR}"
 else
-    mkarchiso -v -w "${WORK_DIR}" -o "${OUT_DIR}" "${PROFILE_DIR}"
+    mkarchiso -v -C "${BUILD_PACMAN_CONF}" -w "${WORK_DIR}" -o "${OUT_DIR}" "${PROFILE_DIR}"
 fi
 
 echo "==> [SynapseOS ISO Builder] ISO generation complete. Artifacts in ${OUT_DIR}:"

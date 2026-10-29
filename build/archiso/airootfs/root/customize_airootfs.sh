@@ -18,7 +18,15 @@ if [[ -d /overlay/etc ]]; then
     rm -rf /overlay
 fi
 
+# Apply SynapseOS Calamares config over the cachyos-calamares defaults
+if [[ -d /etc/synapseos/calamares ]]; then
+    echo "[SynapseOS] Installing Calamares configuration..."
+    cp -af /etc/synapseos/calamares/. /etc/calamares/
+    rm -rf /etc/synapseos/calamares
+fi
+
 # Create live user 'synapse' with passwordless sudo for live environment
+# (live-only: Calamares shellprocess@cleanup deletes both on install)
 if ! id -u synapse >/dev/null 2>&1; then
     echo "[SynapseOS] Creating live user 'synapse'..."
     useradd -m -G wheel,video,audio,input,network,storage,wireshark -s /bin/bash synapse
@@ -63,13 +71,38 @@ ln -sf /usr/lib/systemd/system/sddm.service /etc/systemd/system/display-manager.
 # Link systemd-resolved stub resolv.conf for Quad9 DoT
 ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 
-# Initialize Pacman Keyring & CachyOS Signing Key (F3B607488DB35A47)
-if command -v pacman-key >/dev/null 2>&1; then
-    echo "[SynapseOS] Initializing pacman keyring and CachyOS repository key..."
-    pacman-key --init || true
-    pacman-key --populate archlinux || true
-    pacman-key --recv-keys F3B607488DB35A47 --keyserver keyserver.ubuntu.com 2>/dev/null || true
-    pacman-key --lsign-key F3B607488DB35A47 2>/dev/null || true
-fi
+# Pacman Keyring: generated per boot on a tmpfs, never at build time, so no two
+# SynapseOS machines share a pacman master signing key. `--populate` picks up the
+# CachyOS key (F3B607488DB35A47) from the cachyos-keyring package; no keyserver fetch.
+# Calamares (shellprocess@cleanup) removes these units and builds a fresh keyring on install.
+echo "[SynapseOS] Installing per-boot pacman keyring units..."
+rm -rf /etc/pacman.d/gnupg
+cat << 'EOF' > /etc/systemd/system/etc-pacman.d-gnupg.mount
+[Unit]
+Description=Temporary /etc/pacman.d/gnupg directory
+
+[Mount]
+What=tmpfs
+Where=/etc/pacman.d/gnupg
+Type=tmpfs
+Options=mode=0755,noswap
+EOF
+cat << 'EOF' > /etc/systemd/system/pacman-init.service
+[Unit]
+Description=Initializes Pacman keyring
+Requires=etc-pacman.d-gnupg.mount
+After=etc-pacman.d-gnupg.mount time-sync.target
+BindsTo=etc-pacman.d-gnupg.mount
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/pacman-key --init
+ExecStart=/usr/bin/pacman-key --populate
+
+[Install]
+WantedBy=multi-user.target
+EOF
+systemctl enable pacman-init.service
 
 echo "[SynapseOS] customize_airootfs.sh completed successfully."
