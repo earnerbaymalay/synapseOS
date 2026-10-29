@@ -422,6 +422,35 @@ check_file_lacks "${REPO_ROOT}/packages/desktop/synapse-theme-ps2/PKGBUILD" 'sdd
 check_file_contains "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-synapseos-ps2.conf" '^DisplayCommand=/usr/share/sddm/scripts/Xsetup-synapseos$' "SDDM DisplayCommand points at Xsetup-synapseos"
 check_file_lacks "${REPO_ROOT}/build/build-iso.sh" 'AIROOTFS_DIR\}/etc/calamares/' "Calamares config not staged over cachyos-calamares files"
 
+# Live boot & installed-system bootability
+check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/mkinitcpio.conf.d/archiso.conf" '^HOOKS=\(.* archiso .*\)$' "Live initramfs includes archiso hooks"
+check_file_lacks "${REPO_ROOT}/build/archiso/efiboot/loader/entries/01-synapseos-x86_64-linux.conf" '(intel|amd)-ucode\.img' "systemd-boot entry has no external microcode (microcode hook embeds it)"
+check_file_lacks "${REPO_ROOT}/build/archiso/syslinux/syslinux.cfg" '(intel|amd)-ucode\.img' "syslinux entries have no external microcode"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" 'install -Dm644 .*/vmlinuz' "Calamares restores kernels emptied from /boot by mkarchiso"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/shellprocess@cleanup.conf" 'rm -f /etc/mkinitcpio.conf.d/archiso.conf' "Calamares drops live archiso initramfs hooks"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" '^      - initcpio$' "Calamares rebuilds the installed initramfs"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/bootloader.conf" '^efiBootLoader: "grub"$' "Calamares installs GRUB (not cachyos-calamares limine default)"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/mount.conf" 'subvolume: /@snapshots' "Calamares mount.conf defines @snapshots subvolume"
+if grep -Rqs "geoip" "${REPO_ROOT}/packages/installer/calamares"; then
+    fail "Calamares configs perform no GeoIP lookup"
+else
+    pass "Calamares configs perform no GeoIP lookup"
+fi
+for module in welcome locale; do
+    check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/${module}.conf" '^---$' "Calamares ${module}.conf overrides cachyos-calamares default (GeoIP)"
+done
+if python3 -c 'import yaml' 2>/dev/null; then
+    for yml in "${REPO_ROOT}"/packages/installer/calamares/modules/*.conf "${REPO_ROOT}/packages/installer/calamares/settings.conf"; do
+        if python3 -c 'import sys, yaml; yaml.safe_load(open(sys.argv[1]))' "${yml}" 2>/dev/null; then
+            pass "Valid YAML: ${yml#"${REPO_ROOT}/"}"
+        else
+            fail "Valid YAML: ${yml#"${REPO_ROOT}/"}"
+        fi
+    done
+else
+    warn "python3-yaml unavailable; skipping Calamares YAML validation"
+fi
+
 # V4 theme pack & screensaver
 THEMES_DIR="${REPO_ROOT}/packages/desktop/synapse-themes"
 for wp in 01-synapse-obsidian-mauve 02-synapse-ristretto-tungsten 03-synapse-crimson-carbon 04-synapse-platinum-chrome 05-synapse-obsidian-unbranded; do
@@ -431,7 +460,7 @@ check_file_contains "${THEMES_DIR}/synapse-theme" '^DEFAULT_THEME="obsidian-mauv
 check_file_contains "${THEMES_DIR}/synapse-theme" '<Primary><Super>t' "XFCE Super+Ctrl+T opens the theme menu"
 check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/sway/config" 'Ctrl\+t exec synapse-theme --menu' "Sway Super+Ctrl+T opens the theme menu"
 check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/sway/config" "synapse-screensaver --launch" "Sway idle launches the torus screensaver"
-if (cd "${THEMES_DIR}" && makepkg --verifysource --skippgpcheck >/dev/null 2>&1); then
+if (cd "${THEMES_DIR}" && makepkg -f --verifysource --skippgpcheck >/dev/null 2>&1); then
     pass "synapse-themes sha256sums match sources"
 else
     fail "synapse-themes sha256sums match sources (run updpkgsums in ${THEMES_DIR#"${REPO_ROOT}/"})"

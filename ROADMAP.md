@@ -41,6 +41,8 @@
 - [x] Generate pacman keyring per boot (`pacman-init.service`) instead of baking a master key into the ISO.
 - [x] Calamares `shellprocess@cleanup`: remove live NOPASSWD sudoers + passwordless live user, fresh keyring on install; `users.conf` wheel sudo with password.
 - [x] Resolve pacstrap file conflicts (`Xsetup-synapseos`, Calamares config applied after `cachyos-calamares`).
-- [ ] Calamares initramfs regeneration (`initcpiocfg`/`initcpio`) and archiso hook removal for installed systems.
+- [x] Live ISO bootability: archiso initramfs hooks (`mkinitcpio.conf.d/archiso.conf`), microcode via hook instead of missing `*-ucode.img` initrds.
+- [x] Installed-system bootability: restore kernels emptied from `/boot` by mkarchiso, drop archiso hooks, `initcpiocfg`/`initcpio`, GRUB `bootloader.conf` (not cachyos limine default), `mount.conf` Btrfs layout.
+- [x] Calamares privacy: own `welcome.conf`/`locale.conf` with no GeoIP lookup; fix invalid YAML in `partition.conf`.
 - [ ] Native 4K re-renders of the V4 wallpapers.
 - [ ] Stage C: full `mkarchiso` build + QEMU/KVM boot verification; Stage D: `v0.1.0-alpha` release.
