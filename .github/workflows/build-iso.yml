@@ -1,0 +1,87 @@
+name: Build & Verify SynapseOS Live ISO
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify-gates:
+    name: "Gate G1–G4 Verification Harness"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Verification Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck python3-pytest python3-yaml jq
+
+      - name: Run ShellCheck on Build Scripts
+        run: |
+          shellcheck build/build-iso.sh build/verify-gates.sh build/archiso/profiledef.sh build/archiso/airootfs/root/customize_airootfs.sh
+
+      - name: Execute Verification Gates (G1-G4)
+        run: |
+          ./build/verify-gates.sh
+
+      - name: Run Dry-Run ISO Validation
+        run: |
+          ./build/build-iso.sh --dry-run
+
+  build-iso:
+    name: "Build Archiso Live Image (x86_64)"
+    needs: verify-gates
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Free Disk Space for ISO Build
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          df -h
+
+      - name: Build SynapseOS ISO in Privileged Arch Linux Container
+        run: |
+          docker run --privileged --rm \
+            -v "${GITHUB_WORKSPACE}:/workspace" \
+            -w /workspace \
+            archlinux:latest \
+            bash -euo pipefail -c "
+              pacman -Syu --noconfirm archiso base-devel git sudo namcap shellcheck
+              ./build/verify-gates.sh
+              ./build/build-iso.sh --build-pkgs
+            "
+
+      - name: Generate SHA256 Checksums
+        run: |
+          cd out
+          sha256sum *.iso > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Upload ISO Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: synapseos-live-iso
+          path: |
+            out/*.iso
+            out/SHA256SUMS
+          retention-days: 14
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          generate_release_notes: true
+          files: |
+            out/*.iso
+            out/SHA256SUMS

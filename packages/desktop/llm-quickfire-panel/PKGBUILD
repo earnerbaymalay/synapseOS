@@ -1,0 +1,64 @@
+# Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
+pkgname=llm-quickfire-panel
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Instant Rofi/GTK Cyberdeck HUD & Live Theme Switcher for Local LLMs and SynapseOS"
+arch=('any')
+url="https://github.com/earnerbaymalay/llm-quickfire-panel"
+license=('MIT')
+depends=('bash' 'rofi' 'curl' 'jq' 'libnotify' 'kitty')
+optdepends=(
+  'ollama: Local LLM token generation backend'
+  'synapse-core: Context firewall and memory gateway integration'
+  'xclip: Clipboard integration for prompt outputs'
+)
+makedepends=('git')
+source=("llm-quickfire-panel::git+https://github.com/earnerbaymalay/llm-quickfire-panel.git#branch=main")
+sha256sums=('SKIP')
+
+package() {
+  cd "$srcdir/llm-quickfire-panel"
+
+  # Install core binaries
+  install -Dm755 "bin/quickfire" "$pkgdir/usr/bin/quickfire"
+  install -Dm755 "bin/quickfire-theme" "$pkgdir/usr/bin/quickfire-theme"
+
+  # Create standard command palette aliases
+  ln -sf "/usr/bin/quickfire" "$pkgdir/usr/bin/agy-palette"
+  ln -sf "/usr/bin/quickfire" "$pkgdir/usr/bin/llm-quickfire-panel"
+
+  # Install curated color palettes & themes
+  install -dm755 "$pkgdir/usr/share/llm-quickfire-panel/themes"
+  if [[ -d "themes" ]] && [[ -n "$(ls -A themes 2>/dev/null)" ]]; then
+    cp -r themes/* "$pkgdir/usr/share/llm-quickfire-panel/themes/"
+  fi
+
+  # Install XDG autostart desktop entry
+  if [[ -f "config/llm-quickfire-panel.desktop" ]]; then
+    install -Dm644 "config/llm-quickfire-panel.desktop" "$pkgdir/etc/xdg/autostart/llm-quickfire-panel.desktop"
+  else
+    install -dm755 "$pkgdir/etc/xdg/autostart"
+    cat > "$pkgdir/etc/xdg/autostart/llm-quickfire-panel.desktop" << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=LLM Quickfire Panel
+Comment=SynapseOS Cyberdeck Command Palette & Local LLM HUD
+Exec=/usr/bin/quickfire --autostart
+Icon=utilities-terminal
+Terminal=false
+Categories=Utility;ArtificialIntelligence;
+X-GNOME-Autostart-enabled=true
+EOF
+  fi
+
+  # Install shell completions if available
+  if [[ -d "completions" ]]; then
+    [[ -f "completions/quickfire.bash" ]] && install -Dm644 "completions/quickfire.bash" "$pkgdir/usr/share/bash-completion/completions/quickfire"
+    [[ -f "completions/_quickfire" ]] && install -Dm644 "completions/_quickfire" "$pkgdir/usr/share/zsh/site-functions/_quickfire"
+    [[ -f "completions/quickfire.fish" ]] && install -Dm644 "completions/quickfire.fish" "$pkgdir/usr/share/fish/vendor_completions.d/quickfire.fish"
+  fi
+
+  # Install documentation and license
+  [[ -f "README.md" ]] && install -Dm644 "README.md" "$pkgdir/usr/share/doc/$pkgname/README.md"
+  [[ -f "LICENSE" ]] && install -Dm644 "LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

@@ -1,0 +1,13 @@
+[Unit]
+Description=Synapse Brain 3-Layer Memory Synchronization
+Documentation=https://github.com/earnerbaymalay/synapse
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/synapse sync --once
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=6
+NoNewPrivileges=true
+PrivateTmp=true

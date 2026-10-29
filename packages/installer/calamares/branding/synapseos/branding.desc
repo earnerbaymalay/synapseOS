@@ -1,0 +1,48 @@
+# SPDX-FileCopyrightText: 2026 SynapseOS Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# SynapseOS Calamares Branding Descriptor (PS2 Cyber Blue + Catppuccin Mocha Mauve)
+---
+componentName:   synapseos
+welcomeStyleCalamares: false
+welcomeExpandingLogo: true
+windowExpanding: normal
+windowSize: 960px,620px
+windowPlacement: center
+
+strings:
+    productName:         "SynapseOS"
+    shortProductName:    "SynapseOS"
+    version:             "0.1.0-alpha (Cyber Blue)"
+    shortVersion:        "0.1.0"
+    versionedName:       "SynapseOS 0.1.0-alpha (PS2 Cyber Blue)"
+    shortVersionedName:  "SynapseOS 0.1.0"
+    bootloaderEntryName: "SynapseOS"
+    productUrl:          "https://github.com/earnerbaymalay/synapseOS"
+    supportUrl:          "https://github.com/earnerbaymalay/synapseOS/issues"
+    knownIssuesUrl:      "https://github.com/earnerbaymalay/synapseOS/issues"
+    releaseNotesUrl:     "https://github.com/earnerbaymalay/synapseOS/releases"
+    donateUrl:           "https://github.com/earnerbaymalay/synapseOS"
+
+sidebar: widget
+navigation: widget
+
+images:
+    productLogo:         "synapseos-logo.svg"
+    productIcon:         "synapseos-icon.svg"
+    productWelcome:      "synapseos-welcome.png"
+    productWallpaper:    "background.png"
+
+slideshow:               "show.qml"
+slideshowAPI:            2
+
+style:
+    # Catppuccin Mocha Base + PS2 Cyber Blue & Mauve Accents
+    SidebarBackground:        "#080814"
+    SidebarText:              "#cdd6f4"
+    SidebarTextCurrent:       "#00a8ff"
+    SidebarBackgroundCurrent: "#1e1e2e"
+     mainBackground:          "#11111b"
+     mainText:                "#cdd6f4"
+     accentColor:             "#cba6f7"
+     highlightColor:          "#00a8ff"

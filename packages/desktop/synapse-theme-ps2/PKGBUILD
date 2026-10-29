@@ -1,0 +1,74 @@
+# Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
+pkgname=synapse-theme-ps2
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="PlayStation 2 BIOS-inspired startup animation, SDDM ps2-xfce login theme, and seamless Xsetup handoff for SynapseOS"
+arch=('any')
+url="https://github.com/earnerbaymalay/synapseOS"
+license=('MIT')
+depends=('mpv' 'sddm' 'qt6-declarative' 'qt6-svg' 'bash')
+optdepends=(
+  'python-cairo: Re-render procedural PS2 crystal tower video from source'
+  'python-numpy: Procedural PS2 boot audio synthesis'
+  'ffmpeg: Video encoding pipeline for custom resolution builds'
+  'chromium: Interactive WebGL/Canvas kiosk mode (--web)'
+)
+makedepends=('git')
+source=("ps2-startup::git+https://github.com/earnerbaymalay/ps2-startup.git#branch=main")
+sha256sums=('SKIP')
+
+package() {
+  cd "$srcdir/ps2-startup"
+
+  # 1. Install PS2 startup CLI orchestrator
+  install -Dm755 "xfce-ps2-startup" "$pkgdir/usr/bin/ps2-startup"
+
+  # 2. Install SDDM Xsetup pre-login boot hook
+  install -Dm755 "system/ps2-system-boot" "$pkgdir/usr/local/bin/ps2-system-boot"
+
+  # 3. Install master animation assets & mpv handoff scripts
+  install -dm755 "$pkgdir/usr/local/share/ps2-startup"
+  if [[ -f "ps2_xfce_startup.mp4" ]]; then
+    install -Dm644 "ps2_xfce_startup.mp4" "$pkgdir/usr/local/share/ps2-startup/ps2_startup.mp4"
+    install -Dm644 "ps2_xfce_startup.mp4" "$pkgdir/usr/local/share/ps2-startup/ps2_xfce_startup.mp4"
+  fi
+  install -Dm644 "system/boot-input.conf" "$pkgdir/usr/local/share/ps2-startup/input.conf"
+  install -Dm644 "system/eof-handoff.lua" "$pkgdir/usr/local/share/ps2-startup/eof-handoff.lua"
+
+  # Install WebGL & procedural generator sources for on-device rebuilds
+  for asset in index.html ps2_engine.js three.min.js render_ps2_video.py generate_audio.py input.conf; do
+    [[ -f "$asset" ]] && install -Dm644 "$asset" "$pkgdir/usr/local/share/ps2-startup/$asset"
+  done
+
+  # 4. Install SDDM ps2-xfce Qt6 theme (/usr/share/sddm/themes/ps2-xfce)
+  install -dm755 "$pkgdir/usr/share/sddm/themes/ps2-xfce"
+  install -Dm644 "sddm-theme/Main.qml" "$pkgdir/usr/share/sddm/themes/ps2-xfce/Main.qml"
+  install -Dm644 "sddm-theme/metadata.desktop" "$pkgdir/usr/share/sddm/themes/ps2-xfce/metadata.desktop"
+  install -Dm644 "sddm-theme/theme.conf" "$pkgdir/usr/share/sddm/themes/ps2-xfce/theme.conf"
+  if [[ -f "sddm-theme/background.png" ]]; then
+    install -Dm644 "sddm-theme/background.png" "$pkgdir/usr/share/sddm/themes/ps2-xfce/background.png"
+    install -Dm644 "sddm-theme/background.png" "$pkgdir/usr/share/backgrounds/synapseos/ps2-xfce-background.png"
+  fi
+
+  # 5. Install SDDM Xsetup script wrapper invoking /usr/local/bin/ps2-system-boot
+  install -dm755 "$pkgdir/usr/share/sddm/scripts"
+  cat > "$pkgdir/usr/share/sddm/scripts/Xsetup" << 'EOF'
+#!/bin/sh
+# Xsetup - run as root before the login dialog appears
+
+# Enforce primary display eDP-1 1920x1080@60Hz if connected
+if command -v xrandr >/dev/null 2>&1; then
+    if xrandr | grep -q "^eDP-1 connected"; then
+        xrandr --output eDP-1 --mode 1920x1080 --rate 60.05 --rotate normal --primary || true
+    fi
+fi
+
+# PlayStation 2 System Startup Boot Animation (plays once per boot and holds final frame)
+if [ -x /usr/local/bin/ps2-system-boot ]; then
+    /usr/local/bin/ps2-system-boot || true
+fi
+EOF
+  chmod 755 "$pkgdir/usr/share/sddm/scripts/Xsetup"
+
+  [[ -f "README.md" ]] && install -Dm644 "README.md" "$pkgdir/usr/share/doc/$pkgname/README.md"
+}

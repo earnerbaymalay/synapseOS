@@ -1,0 +1,71 @@
+# ==============================================================================
+# ~/.synapse/config.toml — Synapse AI Core & 3-Layer Memory Engine Configuration
+# ==============================================================================
+
+[gateway]
+host = "127.0.0.1"
+port = 8000
+dns_rebinding_protection = true
+require_bearer_token = false
+cors_allowed_origins = ["http://127.0.0.1:8000", "http://localhost:8000"]
+
+[firewall]
+# Bidirectional Context & Secret Firewall (Prime Directive)
+enabled = true
+inspect_outbound_prompts = true
+inspect_inbound_responses = true
+block_high_entropy_secrets = true
+entropy_threshold = 4.6
+redact_private_keys = true
+redact_api_tokens = true
+redact_hardware_mac = true
+audit_log = "~/.synapse/logs/firewall-audit.jsonl"
+blocked_patterns = [
+  "-----BEGIN [A-Z ]+ PRIVATE KEY-----",
+  "ghp_[A-Za-z0-9_]{36}",
+  "sk-[A-Za-z0-9]{32,}",
+  "AIza[0-9A-Za-z-_]{35}"
+]
+
+[memory]
+# 3-Layer Persistent Agent Memory Engine
+enabled = true
+storage_dir = "~/.synapse/memory"
+sqlite_db = "~/.synapse/memory/synapse_brain.db"
+auto_distill = true
+sync_interval_minutes = 30
+obsidian_vault_path = "~/Obsidian/AI-Knowledge-Base"
+
+[memory.layers.episodic]
+enabled = true
+retention_days = 30
+max_entries = 5000
+description = "Session trajectories, command history context, and recent debugging state"
+
+[memory.layers.semantic]
+enabled = true
+vector_index = true
+description = "Distilled architectural decisions, codebase topology, and verified facts"
+
+[memory.layers.procedural]
+enabled = true
+skills_dir = "~/.agents/skills"
+rules_file = "~/AGENTS.md"
+description = "Reusable workflows, system administration playbooks, and Prime Directive rules"
+
+[llm]
+# Local Ollama Routing & Model Orchestration
+default_provider = "ollama"
+endpoint = "http://127.0.0.1:11434"
+default_model = "qwen2.5-coder:latest"
+fast_model = "llama3.2:latest"
+reasoning_model = "nous-hermes2:latest"
+uncensored_model = "qwen-abliterated:latest"
+timeout_seconds = 120
+keep_alive = "24h"
+num_threads = 4
+
+[hooks]
+session_start = true
+user_prompt_submit = true
+post_tool_use = true

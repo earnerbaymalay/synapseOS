@@ -16,10 +16,10 @@
 
 SynapseOS merges four powerful principles into one seamless operating system:
 
-1. **CachyOS Performance**: Custom BORE / EEVDF CPU schedulers, x86-64-v3 microarchitecture optimization, aggressive ZRAM zstd compression, and Ananicy-CPP process auto-nicing.
-2. **EndeavourOS Foundation**: Clean, unbloated upstream Arch Linux rolling foundation, transparent packaging, Calamares installer, and native systemd management.
-3. **Omarchy Aesthetic**: Monospace terminal-first environment, unified Catppuccin Mocha Mauve + Liquid Chrome visuals, and instant Super-key command palettes.
-4. **Synapse AI Core**: Deeply built into the core OS package (`synapse-core`), providing a localhost:8000 runtime proxy, bidirectional context firewall, 3-layer persistent agent memory, and local LLM routing out of the box.
+1. **CachyOS Performance**: Custom BORE / EEVDF CPU schedulers (`linux-cachyos`), `x86-64-v3` microarchitecture optimization, aggressive ZRAM `zstd` compression (`vm.swappiness=180`), TCP BBR, and `ananicy-cpp` process auto-nicing.
+2. **EndeavourOS Foundation**: Clean, unbloated upstream Arch Linux rolling foundation, transparent packaging, Calamares installer with Btrfs `@` subvolume layouts, and native systemd management.
+3. **Omarchy & PS2 Cyberdeck Aesthetic**: Monospace terminal-first environment, procedural PlayStation 2 BIOS-to-SDDM-to-XFCE visual hand-off, Picom `dual_kawase` glass blur, Catppuccin Mocha Mauve + PS2 Cyber Blue visuals, and instant Super-key command palettes (`llm-quickfire-panel`).
+4. **Synapse AI Core**: Deeply built into the core OS package (`synapse-core`), providing a `127.0.0.1:8000` runtime proxy, bidirectional context firewall, 3-layer persistent agent memory, and local Ollama LLM routing out of the box.
 
 ---
 
@@ -28,32 +28,62 @@ SynapseOS merges four powerful principles into one seamless operating system:
 ```
 synapseOS/
 ├── .agents/                 # Antigravity agent rules (Gemini 4 Argon configuration)
+├── .github/workflows/       # CI/CD ISO build & Gate G1-G4 verification pipeline
+│   └── build-iso.yml
 ├── .vscode/                 # Antigravity IDE workspace settings
 ├── docs/                    # Technical research, architecture & design whitepapers
 │   ├── ARCHITECTURE.md
 │   ├── RESEARCH_SYNAPSE_INTEGRATION.md
 │   ├── INSPIRATIONS_ANALYSIS.md
 │   └── GIT_REPO_STRATEGY.md
-├── build/                   # OS image generation profiles & ISO recipes (archiso)
-├── packages/                # Native Arch Linux PKGBUILD recipes
-│   ├── core/synapse-core/   # PKGBUILD for Synapse runtime gateway
-│   └── desktop/             # SDDM themes, wallpapers, and desktop configs
-├── overlay/                 # Root filesystem overlays (/etc, /etc/skel)
+├── build/                   # Archiso live image profile & verification tooling
+│   ├── archiso/             # Profiledef, package manifest, pacman.conf, bootloaders & airootfs
+│   ├── build-iso.sh         # Automated ISO build & overlay staging script
+│   └── verify-gates.sh      # Gate G1-G4 verification test harness
+├── packages/                # Native Arch Linux PKGBUILD recipes & installer configs
+│   ├── core/synapse-core/   # PKGBUILD for Synapse runtime gateway & systemd units
+│   ├── desktop/             # llm-quickfire-panel & synapse-theme-ps2 PKGBUILDs
+│   └── installer/calamares/ # Calamares settings, PS2/Catppuccin branding & Btrfs modules
+├── overlay/                 # Root filesystem overlays (/etc, sysctl, NetworkManager, skel)
+├── tests/                   # Automated pytest verification suite
 ├── AGENTS.md                # System instructions & Prime Directive
 ├── GEMINI.md                # Gemini workspace settings
-└── ROADMAP.md               # Implementation milestones
+└── ROADMAP.md               # Completed Phase 1-5 implementation milestones
 ```
 
 ---
 
-## 🚀 Quick Start (Development & Building)
+## 🚀 Quick Start (Verification & Building the ISO)
 
+### 1. Clone the Repository
 ```bash
-# Clone the repository
 git clone git@github.com:earnerbaymalay/synapseOS.git
 cd synapseOS
+```
 
-# Inspect documentation
-cat docs/ARCHITECTURE.md
-cat docs/RESEARCH_SYNAPSE_INTEGRATION.md
+### 2. Run the Engineering Verification Gates (G1–G4)
+Validate all `PKGBUILD` recipes (Gate G1), kernel/ZRAM/stealth network configs (Gate G2), Cyberdeck UI/Picom/SDDM handoff (Gate G3), and Archiso/Calamares installer integrity (Gate G4):
+```bash
+./build/verify-gates.sh
+```
+
+### 3. Validate ISO Staging in Non-Root Dry-Run Mode
+Sync `overlay/` and Calamares configurations into `build/archiso/airootfs/etc` and verify Archiso readiness without requiring root privileges:
+```bash
+./build/build-iso.sh --dry-run
+```
+
+### 4. Build the Bootable SynapseOS Live ISO
+On an Arch Linux / EndeavourOS host with `archiso` installed:
+```bash
+# Build native PKGBUILDs into the local [synapseos] repo and generate the ISO
+./build/build-iso.sh --build-pkgs
+
+# Or run mkarchiso directly via the wrapper (outputs to ./out/)
+./build/build-iso.sh
+```
+
+### 5. Boot & Test in QEMU/KVM
+```bash
+qemu-system-x86_64 -m 4G -smp 4 -enable-kvm -cdrom out/synapseos-*.iso
 ```

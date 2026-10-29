@@ -1,0 +1,106 @@
+# Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
+pkgname=synapse-core
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Core AI runtime gateway, bidirectional context firewall, and 3-layer agent memory daemon for SynapseOS"
+arch=('x86_64')
+url="https://github.com/earnerbaymalay/synapse"
+license=('MIT' 'Apache-2.0')
+depends=('gcc-libs' 'glibc' 'openssl' 'sqlite')
+makedepends=('cargo' 'rust' 'git')
+optdepends=(
+  'ollama: Local LLM inference engine integration'
+  'obsidian: Central AI Knowledge Base vault viewer'
+)
+backup=('etc/synapse/config.toml')
+source=(
+  "synapse::git+https://github.com/earnerbaymalay/synapse.git#branch=main"
+  "synapse.service"
+  "synapse-sync.service"
+  "synapse-sync.timer"
+)
+sha256sums=(
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+)
+
+prepare() {
+  cd "$srcdir/synapse"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+  cd "$srcdir/synapse"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR=target
+  export RUSTFLAGS="-C target-cpu=x86-64-v3 -C opt-level=3 -C codegen-units=1"
+  cargo build --release --locked --bin synapse
+}
+
+check() {
+  cd "$srcdir/synapse"
+  export RUSTUP_TOOLCHAIN=stable
+  export CARGO_TARGET_DIR=target
+  cargo test --release --locked
+}
+
+package() {
+  cd "$srcdir/synapse"
+
+  # Install core binary
+  install -Dm755 "target/release/synapse" "$pkgdir/usr/bin/synapse"
+
+  # Install system and user systemd units
+  install -Dm644 "$srcdir/synapse.service" "$pkgdir/usr/lib/systemd/system/synapse.service"
+  install -Dm644 "$srcdir/synapse-sync.service" "$pkgdir/usr/lib/systemd/user/synapse-sync.service"
+  install -Dm644 "$srcdir/synapse-sync.timer" "$pkgdir/usr/lib/systemd/user/synapse-sync.timer"
+
+  # Install default system-wide configuration
+  if [[ -f "fixtures/default-config.toml" ]]; then
+    install -Dm644 "fixtures/default-config.toml" "$pkgdir/etc/synapse/config.toml"
+  elif [[ -f "config.example.toml" ]]; then
+    install -Dm644 "config.example.toml" "$pkgdir/etc/synapse/config.toml"
+  else
+    install -dm755 "$pkgdir/etc/synapse"
+    cat > "$pkgdir/etc/synapse/config.toml" << 'EOF'
+[gateway]
+host = "127.0.0.1"
+port = 8000
+dns_rebinding_protection = true
+
+[firewall]
+enabled = true
+block_high_entropy_secrets = true
+redact_private_keys = true
+
+[memory]
+storage_dir = "/var/lib/synapse/memory"
+layers = ["episodic", "semantic", "procedural"]
+
+[llm]
+provider = "ollama"
+endpoint = "http://127.0.0.1:11434"
+default_model = "qwen2.5-coder:latest"
+EOF
+  fi
+
+  # Install runtime state directory
+  install -dm750 "$pkgdir/var/lib/synapse/memory"
+
+  # Generate shell completions (bash, zsh, fish)
+  install -dm755 "$pkgdir/usr/share/bash-completion/completions"
+  install -dm755 "$pkgdir/usr/share/zsh/site-functions"
+  install -dm755 "$pkgdir/usr/share/fish/vendor_completions.d"
+
+  "$pkgdir/usr/bin/synapse" completions bash > "$pkgdir/usr/share/bash-completion/completions/synapse" 2>/dev/null || true
+  "$pkgdir/usr/bin/synapse" completions zsh > "$pkgdir/usr/share/zsh/site-functions/_synapse" 2>/dev/null || true
+  "$pkgdir/usr/bin/synapse" completions fish > "$pkgdir/usr/share/fish/vendor_completions.d/synapse.fish" 2>/dev/null || true
+
+  # Install license if present
+  if [[ -f "LICENSE" ]]; then
+    install -Dm644 "LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  fi
+}

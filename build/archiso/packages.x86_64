@@ -1,0 +1,146 @@
+# ==============================================================================
+# SynapseOS x86_64 Live ISO Package Manifest
+# Architecture: x86-64-v3 (CachyOS BORE + EndeavourOS Minimal Base + Synapse AI)
+# ==============================================================================
+
+# --- Base Arch System & Boot ---
+arch-install-scripts
+base
+base-devel
+btrfs-progs
+dosfstools
+e2fsprogs
+efibootmgr
+exfatprogs
+gptfdisk
+grub
+intel-ucode
+amd-ucode
+linux-firmware
+mkinitcpio
+mkinitcpio-archiso
+nvme-cli
+os-prober
+parted
+sudo
+syslinux
+systemd-resolvconf
+
+# --- Kernel, Microarchitecture & Performance (CachyOS Layer) ---
+linux-cachyos
+linux-cachyos-headers
+ananicy-cpp
+cachyos-ananicy-rules
+zram-generator
+nohang
+tlp
+throttled
+hdparm
+smartmontools
+
+# --- Audio & Multimedia (PipeWire + WirePlumber) ---
+alsa-utils
+pavucontrol
+pipewire
+pipewire-alsa
+pipewire-jack
+pipewire-pulse
+wireplumber
+mpv
+ffmpeg
+
+# --- Graphics & Display Server ---
+mesa
+vulkan-intel
+vulkan-radeon
+xorg-server
+xorg-xinit
+xorg-xrandr
+xorg-xsetroot
+xf86-video-intel
+xf86-video-amdgpu
+xf86-input-libinput
+
+# --- Desktop Environment & Cyberdeck UI (XFCE 4.20 + Omarchy HUD) ---
+xfce4
+xfce4-goodies
+sddm
+qt6-svg
+qt6-declarative
+qt6-5compat
+picom
+kitty
+rofi
+xcape
+xclip
+xdg-user-dirs
+xdg-utils
+papirus-icon-theme
+ttf-jetbrains-mono-nerd
+noto-fonts
+noto-fonts-emoji
+cairo
+python-cairo
+python-gobject
+gtk3
+gtk4
+
+# --- AI Core & Autonomous Developer Stack ---
+ollama
+uv
+python
+python-pip
+rust
+cargo
+git
+git-delta
+lazygit
+ripgrep
+fd
+fzf
+bat
+eza
+jq
+duf
+zoxide
+starship
+tmux
+neovim
+curl
+wget
+openssh
+rsync
+
+# --- Security, Stealth & RF Analysis Stack (Prime Directive) ---
+firewalld
+networkmanager
+iptables-nft
+nftables
+wireshark-qt
+termshark
+tshark
+bettercap
+nmap
+macchanger
+tcpdump
+iw
+wireless_tools
+wpa_supplicant
+cryptsetup
+gnupg
+
+# --- Installer & Live System Utilities ---
+calamares
+polkit
+polkit-gnome
+gvfs
+gvfs-mtp
+network-manager-applet
+blueman
+bluez
+bluez-utils
+
+# --- SynapseOS Native Packages ([synapseos] Repo) ---
+synapse-core
+llm-quickfire-panel
+synapse-theme-ps2

@@ -1,0 +1,280 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# SynapseOS Verification Harness (build/verify-gates.sh)
+# Validates Engineering Gates G1, G2, G3, and G4 across the repository.
+# ==============================================================================
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+
+PASS_COUNT=0
+WARN_COUNT=0
+FAIL_COUNT=0
+
+pass() {
+    echo "  [PASS] $1"
+    PASS_COUNT=$((PASS_COUNT + 1))
+}
+
+warn() {
+    echo "  [WARN] $1"
+    WARN_COUNT=$((WARN_COUNT + 1))
+}
+
+fail() {
+    echo "  [FAIL] $1" >&2
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+}
+
+check_file_contains() {
+    local file="$1"
+    local pattern="$2"
+    local description="$3"
+    if [[ ! -f "${file}" ]]; then
+        fail "${description} (file missing: ${file#"${REPO_ROOT}/"})"
+        return
+    fi
+    if grep -Eq "${pattern}" "${file}"; then
+        pass "${description}"
+    else
+        fail "${description} (pattern '${pattern}' not found in ${file#"${REPO_ROOT}/"})"
+    fi
+}
+
+echo "=============================================================================="
+echo " SynapseOS Engineering Verification Harness (Gates G1 - G4)"
+echo "=============================================================================="
+
+# ------------------------------------------------------------------------------
+# Gate G1: Package Verification (PKGBUILD syntax & metadata)
+# ------------------------------------------------------------------------------
+echo ""
+echo "---> Gate G1: Native Package Verification (PKGBUILDs)"
+EXPECTED_PKGBUILDS=(
+    "${REPO_ROOT}/packages/core/synapse-core/PKGBUILD"
+    "${REPO_ROOT}/packages/desktop/llm-quickfire-panel/PKGBUILD"
+    "${REPO_ROOT}/packages/desktop/synapse-theme-ps2/PKGBUILD"
+)
+
+for pkgbuild in "${EXPECTED_PKGBUILDS[@]}"; do
+    rel_path="${pkgbuild#"${REPO_ROOT}/"}"
+    if [[ -f "${pkgbuild}" ]]; then
+        if bash -n "${pkgbuild}" 2>/dev/null; then
+            pass "Syntax valid: ${rel_path}"
+        else
+            fail "Syntax error in ${rel_path}"
+        fi
+        check_file_contains "${pkgbuild}" "^pkgname=" "Metadata pkgname defined in ${rel_path}"
+        check_file_contains "${pkgbuild}" "^pkgver=" "Metadata pkgver defined in ${rel_path}"
+        check_file_contains "${pkgbuild}" "^arch=.*(x86_64|any)" "Architecture (x86_64|any) defined in ${rel_path}"
+        check_file_contains "${pkgbuild}" "package\(\)" "package() function defined in ${rel_path}"
+    else
+        warn "Pending Phase 1 deliverable: ${rel_path} (not yet created in worktree)"
+    fi
+done
+
+# ------------------------------------------------------------------------------
+# Gate G2: Kernel, ZRAM & Stealth Network Posture (Prime Directive)
+# ------------------------------------------------------------------------------
+echo ""
+echo "---> Gate G2: Kernel, Latency & Prime Directive Stealth Configs"
+SYSCTL_CONF="${REPO_ROOT}/overlay/etc/sysctl.d/99-synapseos.conf"
+if [[ -f "${SYSCTL_CONF}" ]]; then
+    check_file_contains "${SYSCTL_CONF}" "vm\.swappiness[[:space:]]*=[[:space:]]*180" "ZRAM swappiness=180 in 99-synapseos.conf"
+    check_file_contains "${SYSCTL_CONF}" "vm\.page-cluster[[:space:]]*=[[:space:]]*0" "ZRAM page-cluster=0 in 99-synapseos.conf"
+    check_file_contains "${SYSCTL_CONF}" "vm\.vfs_cache_pressure[[:space:]]*=[[:space:]]*50" "vfs_cache_pressure=50 in 99-synapseos.conf"
+    check_file_contains "${SYSCTL_CONF}" "tcp_congestion_control[[:space:]]*=[[:space:]]*bbr" "TCP BBR congestion control in 99-synapseos.conf"
+else
+    warn "Pending Phase 2 deliverable: overlay/etc/sysctl.d/99-synapseos.conf"
+fi
+
+ZRAM_CONF="${REPO_ROOT}/overlay/etc/systemd/zram-generator.conf"
+if [[ -f "${ZRAM_CONF}" ]]; then
+    check_file_contains "${ZRAM_CONF}" "compression-algorithm[[:space:]]*=[[:space:]]*zstd" "ZRAM zstd compression in zram-generator.conf"
+else
+    warn "Pending Phase 2 deliverable: overlay/etc/systemd/zram-generator.conf"
+fi
+
+NM_STEALTH_DIR="${REPO_ROOT}/overlay/etc/NetworkManager/conf.d"
+if [[ -d "${NM_STEALTH_DIR}" ]]; then
+    if grep -Rqs "scan-rand-mac-address=yes" "${NM_STEALTH_DIR}"; then
+        pass "NetworkManager Wi-Fi scan MAC randomization enabled"
+    else
+        fail "NetworkManager scan-rand-mac-address=yes missing in ${NM_STEALTH_DIR}"
+    fi
+    if grep -Rqs "cloned-mac-address=random" "${NM_STEALTH_DIR}"; then
+        pass "NetworkManager per-session cloned MAC randomization enabled"
+    else
+        fail "NetworkManager cloned-mac-address=random missing in ${NM_STEALTH_DIR}"
+    fi
+    if grep -Rqs "ip6-privacy=2" "${NM_STEALTH_DIR}"; then
+        pass "NetworkManager RFC 4941 IPv6 privacy extensions enabled"
+    else
+        fail "NetworkManager ip6-privacy=2 missing in ${NM_STEALTH_DIR}"
+    fi
+else
+    warn "Pending Phase 2 deliverable: overlay/etc/NetworkManager/conf.d"
+fi
+
+RESOLVED_DIR="${REPO_ROOT}/overlay/etc/systemd"
+if [[ -d "${RESOLVED_DIR}" ]] && grep -Rqs "9\.9\.9\.9" "${RESOLVED_DIR}"; then
+    pass "Quad9 DNS-over-TLS resolver (9.9.9.9) configured"
+else
+    warn "Pending Phase 2 deliverable: Quad9 DNS-over-TLS configuration in overlay/etc/systemd"
+fi
+
+# ------------------------------------------------------------------------------
+# Gate G3: Cyberdeck UI, Picom, SDDM & Quickfire Configs
+# ------------------------------------------------------------------------------
+echo ""
+echo "---> Gate G3: Cyberdeck UI, Picom, SDDM & Quickfire Configs"
+PICOM_CONF="${REPO_ROOT}/overlay/etc/xdg/picom.conf"
+if [[ -f "${PICOM_CONF}" ]]; then
+    check_file_contains "${PICOM_CONF}" "dual_kawase" "Picom dual_kawase blur configured"
+    check_file_contains "${PICOM_CONF}" "corner-radius" "Picom rounded corner-radius configured"
+else
+    warn "Pending Phase 3 deliverable: overlay/etc/xdg/picom.conf"
+fi
+
+SDDM_CONF_DIR="${REPO_ROOT}/overlay/etc/sddm.conf.d"
+SDDM_CONF_FILE="${REPO_ROOT}/overlay/etc/sddm.conf"
+if [[ -d "${SDDM_CONF_DIR}" ]] || [[ -f "${SDDM_CONF_FILE}" ]]; then
+    if grep -Rqs "ps2-xfce" "${REPO_ROOT}/overlay/etc/sddm"* 2>/dev/null; then
+        pass "SDDM theme set to ps2-xfce"
+    else
+        fail "SDDM theme ps2-xfce not found in overlay/etc/sddm*"
+    fi
+else
+    warn "Pending Phase 3 deliverable: SDDM configuration in overlay/etc/sddm*"
+fi
+
+if [[ -f "${REPO_ROOT}/tests/test_ps2_startup.py" ]]; then
+    if command -v pytest >/dev/null 2>&1; then
+        if pytest -q "${REPO_ROOT}/tests/test_ps2_startup.py"; then
+            pass "Pytest UI & architecture test suite (tests/test_ps2_startup.py)"
+        else
+            fail "Pytest suite failed (tests/test_ps2_startup.py)"
+        fi
+    elif command -v python3 >/dev/null 2>&1; then
+        if python3 "${REPO_ROOT}/tests/test_ps2_startup.py" >/dev/null 2>&1; then
+            pass "Python unittest UI & architecture test suite (tests/test_ps2_startup.py)"
+        else
+            fail "Python unittest suite failed (tests/test_ps2_startup.py)"
+        fi
+    fi
+fi
+
+# ------------------------------------------------------------------------------
+# Gate G4: Archiso Profile & Calamares Installer Integrity
+# ------------------------------------------------------------------------------
+echo ""
+echo "---> Gate G4: Archiso Profile & Calamares Installer Integrity"
+PROFILEDEF="${REPO_ROOT}/build/archiso/profiledef.sh"
+PACKAGES_FILE="${REPO_ROOT}/build/archiso/packages.x86_64"
+PACMAN_CONF="${REPO_ROOT}/build/archiso/pacman.conf"
+CUSTOMIZE_SH="${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh"
+BUILD_ISO_SH="${REPO_ROOT}/build/build-iso.sh"
+
+if bash -n "${PROFILEDEF}"; then
+    pass "Archiso profiledef.sh bash syntax valid"
+else
+    fail "Archiso profiledef.sh has syntax errors"
+fi
+
+check_file_contains "${PROFILEDEF}" 'iso_name="synapseos"' "Archiso iso_name set to synapseos"
+check_file_contains "${PROFILEDEF}" 'uefi-x64\.systemd-boot\.esp' "Archiso UEFI systemd-boot mode enabled"
+check_file_contains "${PROFILEDEF}" 'bios\.syslinux\.mbr' "Archiso BIOS syslinux mode enabled"
+check_file_contains "${PROFILEDEF}" 'zstd' "Archiso squashfs zstd compression enabled"
+
+REQUIRED_PKGS=(
+    "linux-cachyos"
+    "linux-cachyos-headers"
+    "ananicy-cpp"
+    "cachyos-ananicy-rules"
+    "zram-generator"
+    "xfce4"
+    "sddm"
+    "picom"
+    "kitty"
+    "rofi"
+    "ollama"
+    "uv"
+    "rust"
+    "ripgrep"
+    "fd"
+    "fzf"
+    "bat"
+    "eza"
+    "jq"
+    "lazygit"
+    "git-delta"
+    "firewalld"
+    "wireshark-qt"
+    "termshark"
+    "bettercap"
+    "nmap"
+    "macchanger"
+    "synapse-core"
+    "llm-quickfire-panel"
+    "synapse-theme-ps2"
+)
+
+for pkg in "${REQUIRED_PKGS[@]}"; do
+    check_file_contains "${PACKAGES_FILE}" "^${pkg}$" "Package '${pkg}' present in packages.x86_64"
+done
+
+check_file_contains "${PACMAN_CONF}" "^\[synapseos\]" "pacman.conf includes [synapseos] repo"
+check_file_contains "${PACMAN_CONF}" "^\[cachyos-v3\]" "pacman.conf includes [cachyos-v3] repo"
+check_file_contains "${PACMAN_CONF}" "^\[cachyos\]" "pacman.conf includes [cachyos] repo"
+check_file_contains "${PACMAN_CONF}" "^\[core\]" "pacman.conf includes [core] repo"
+check_file_contains "${PACMAN_CONF}" "^\[extra\]" "pacman.conf includes [extra] repo"
+
+check_file_contains "${REPO_ROOT}/build/archiso/efiboot/loader/loader.conf" "01-synapseos-x86_64-linux\.conf" "UEFI loader.conf points to SynapseOS entry"
+check_file_contains "${REPO_ROOT}/build/archiso/efiboot/loader/entries/01-synapseos-x86_64-linux.conf" "vmlinuz-linux-cachyos" "UEFI entry boots vmlinuz-linux-cachyos"
+check_file_contains "${REPO_ROOT}/build/archiso/syslinux/syslinux.cfg" "vmlinuz-linux-cachyos" "BIOS syslinux.cfg boots vmlinuz-linux-cachyos"
+
+if [[ -x "${CUSTOMIZE_SH}" ]] && bash -n "${CUSTOMIZE_SH}"; then
+    pass "customize_airootfs.sh is executable and syntactically valid"
+else
+    fail "customize_airootfs.sh is not executable or has syntax errors"
+fi
+
+if [[ -x "${BUILD_ISO_SH}" ]] && bash -n "${BUILD_ISO_SH}"; then
+    pass "build/build-iso.sh is executable and syntactically valid"
+else
+    fail "build/build-iso.sh is not executable or has syntax errors"
+fi
+
+# Calamares checks
+CAL_SETTINGS="${REPO_ROOT}/packages/installer/calamares/settings.conf"
+CAL_BRANDING="${REPO_ROOT}/packages/installer/calamares/branding/synapseos/branding.desc"
+CAL_PARTITION="${REPO_ROOT}/packages/installer/calamares/modules/partition.conf"
+CAL_SERVICES="${REPO_ROOT}/packages/installer/calamares/modules/services-systemd.conf"
+
+check_file_contains "${CAL_SETTINGS}" "branding:[[:space:]]*synapseos" "Calamares settings.conf uses synapseos branding"
+check_file_contains "${CAL_SETTINGS}" "unpackfs" "Calamares settings.conf exec sequence includes unpackfs"
+check_file_contains "${CAL_SETTINGS}" "services-systemd" "Calamares settings.conf exec sequence includes services-systemd"
+check_file_contains "${CAL_BRANDING}" "componentName:[[:space:]]*synapseos" "Calamares branding.desc defines synapseos component"
+check_file_contains "${CAL_BRANDING}" "#00a8ff" "Calamares branding.desc includes PS2 Cyber Blue (#00a8ff)"
+check_file_contains "${CAL_BRANDING}" "#cba6f7" "Calamares branding.desc includes Catppuccin Mauve (#cba6f7)"
+check_file_contains "${CAL_PARTITION}" 'defaultFileSystemType:[[:space:]]*"btrfs"' "Calamares partition.conf defaults to Btrfs"
+check_file_contains "${CAL_PARTITION}" "/@snapshots" "Calamares partition.conf defines @snapshots subvolume"
+check_file_contains "${CAL_SERVICES}" "synapse" "Calamares services-systemd.conf enables synapse service"
+check_file_contains "${CAL_SERVICES}" "sddm" "Calamares services-systemd.conf enables sddm service"
+check_file_contains "${CAL_SERVICES}" "firewalld" "Calamares services-systemd.conf enables firewalld service"
+
+# GitHub Actions workflow check
+GH_WORKFLOW="${REPO_ROOT}/.github/workflows/build-iso.yml"
+check_file_contains "${GH_WORKFLOW}" "verify-gates\.sh" "GitHub workflow runs verify-gates.sh"
+check_file_contains "${GH_WORKFLOW}" "SHA256SUMS" "GitHub workflow generates SHA256SUMS"
+
+echo ""
+echo "=============================================================================="
+echo " Verification Summary: ${PASS_COUNT} passed, ${WARN_COUNT} warnings, ${FAIL_COUNT} failed"
+echo "=============================================================================="
+
+if [[ "${FAIL_COUNT}" -gt 0 ]]; then
+    exit 1
+fi
+exit 0
