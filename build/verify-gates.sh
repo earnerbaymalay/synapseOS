@@ -468,6 +468,17 @@ check_file_contains "${REPO_ROOT}/overlay/etc/chromium/default-flags" '--disable
 check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/PKGBUILD" 'synapse-setup' "synapse-hud package includes synapse-setup"
 check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/PKGBUILD" 'synapse-notes' "synapse-hud package includes synapse-notes"
 check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/PKGBUILD" 'synapse-settings' "synapse-hud package includes synapse-settings"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/PKGBUILD" 'synapse-welcome' "synapse-hud package includes synapse-welcome"
+check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/autostart/synapse-welcome.desktop" 'synapse-welcome' "Autostart launches synapse-welcome on first session"
+
+# Metallic Icon Themes
+for icon_theme in "Synapse-Liquid-Chrome" "Synapse-Smoked-Obsidian" "Synapse-Radial-Tungsten" "Synapse-Aerospace-Billet"; do
+    if [[ -f "${REPO_ROOT}/packages/desktop/synapse-hud/icons/${icon_theme}/index.theme" ]]; then
+        pass "Metallic Icon Theme present: ${icon_theme}"
+    else
+        fail "Metallic Icon Theme missing: ${icon_theme}"
+    fi
+done
 if [[ "$(readlink "${REPO_ROOT}/build/archiso/airootfs/etc/resolv.conf" 2>/dev/null)" == "/run/systemd/resolve/stub-resolv.conf" ]]; then
     pass "Live resolv.conf links to the systemd-resolved stub (Quad9 DoT)"
 else

@@ -1,0 +1,19 @@
+[Icon Theme]
+Name=Synapse-Radial-Tungsten
+Comment=SynapseOS Radial Milled Tungsten — Anisotropic lathe grain & singularity torus
+Inherits=Hatter-Purple,Papirus-Dark,hicolor
+Directories=scalable/apps,scalable/places
+
+[scalable/apps]
+Context=Applications
+Size=128
+MinSize=16
+MaxSize=512
+Type=Scalable
+
+[scalable/places]
+Context=Places
+Size=128
+MinSize=16
+MaxSize=512
+Type=Scalable

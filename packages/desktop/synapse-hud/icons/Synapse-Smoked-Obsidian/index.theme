@@ -1,0 +1,19 @@
+[Icon Theme]
+Name=Synapse-Smoked-Obsidian
+Comment=SynapseOS Smoked Obsidian — Mirror black ceramic & neon mauve conduit
+Inherits=Hatter-Purple,Papirus-Dark,hicolor
+Directories=scalable/apps,scalable/places
+
+[scalable/apps]
+Context=Applications
+Size=128
+MinSize=16
+MaxSize=512
+Type=Scalable
+
+[scalable/places]
+Context=Places
+Size=128
+MinSize=16
+MaxSize=512
+Type=Scalable

@@ -2,7 +2,7 @@
 pkgname=synapse-hud
 pkgver=0.1.0
 pkgrel=1
-pkgdesc="Native Qt6/QML Material You Command HUD, Synapse Settings Control Center, and Brain Notes"
+pkgdesc="Native Qt6/QML Material You Command HUD, Synapse Settings Control Center, Brain Notes, and Metallic Icon Suites"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"
 license=('MIT')
@@ -12,13 +12,17 @@ source=(
   "synapse-settings"
   "synapse-notes"
   "synapse-setup"
+  "synapse-welcome"
   "Main.qml"
   "CommandCategoryCard.qml"
   "synapse-hud.desktop"
   "synapse-settings.desktop"
   "synapse-notes.desktop"
+  "synapse-welcome.desktop"
 )
 sha256sums=(
+  'SKIP'
+  'SKIP'
   'SKIP'
   'SKIP'
   'SKIP'
@@ -36,6 +40,7 @@ package() {
   install -Dm755 "${srcdir}/synapse-settings" "${pkgdir}/usr/bin/synapse-settings"
   install -Dm755 "${srcdir}/synapse-notes" "${pkgdir}/usr/bin/synapse-notes"
   install -Dm755 "${srcdir}/synapse-setup" "${pkgdir}/usr/bin/synapse-setup"
+  install -Dm755 "${srcdir}/synapse-welcome" "${pkgdir}/usr/bin/synapse-welcome"
   ln -sf "/usr/bin/synapse-hud" "${pkgdir}/usr/bin/synapse-palette"
 
   # QML Assets
@@ -47,4 +52,11 @@ package() {
   install -Dm644 "${srcdir}/synapse-hud.desktop" "${pkgdir}/usr/share/applications/synapse-hud.desktop"
   install -Dm644 "${srcdir}/synapse-settings.desktop" "${pkgdir}/usr/share/applications/synapse-settings.desktop"
   install -Dm644 "${srcdir}/synapse-notes.desktop" "${pkgdir}/usr/share/applications/synapse-notes.desktop"
+  install -Dm644 "${srcdir}/synapse-welcome.desktop" "${pkgdir}/usr/share/applications/synapse-welcome.desktop"
+
+  # Metallic Icon Suites
+  if [[ -d "${startdir}/icons" ]]; then
+    install -dm755 "${pkgdir}/usr/share/icons"
+    cp -af "${startdir}/icons/." "${pkgdir}/usr/share/icons/"
+  fi
 }

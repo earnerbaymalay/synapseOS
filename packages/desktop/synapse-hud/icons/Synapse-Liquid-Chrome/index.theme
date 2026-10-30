@@ -1,0 +1,19 @@
+[Icon Theme]
+Name=Synapse-Liquid-Chrome
+Comment=SynapseOS Liquid Mauve Chrome — High-gloss mirror finish & diamond chamfers
+Inherits=Hatter-Purple,Papirus-Dark,hicolor
+Directories=scalable/apps,scalable/places
+
+[scalable/apps]
+Context=Applications
+Size=128
+MinSize=16
+MaxSize=512
+Type=Scalable
+
+[scalable/places]
+Context=Places
+Size=128
+MinSize=16
+MaxSize=512
+Type=Scalable

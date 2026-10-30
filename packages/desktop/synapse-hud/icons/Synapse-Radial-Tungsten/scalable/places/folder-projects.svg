@@ -1,0 +1,44 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="7" stdDeviation="6" flood-color="#000000" flood-opacity="0.65"/>
+    </filter>
+
+    <!-- Concentric Lathe Ring Specular Cross Reflection -->
+    <radialGradient id="tungsten-radial" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#45475a"/>
+      <stop offset="25%" stop-color="#313244"/>
+      <stop offset="55%" stop-color="#181825"/>
+      <stop offset="85%" stop-color="#313244"/>
+      <stop offset="100%" stop-color="#11111b"/>
+    </radialGradient>
+
+    <!-- Chrome Outer Stepped Bevel -->
+    <linearGradient id="stepped-bevel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#cdd6f4"/>
+      <stop offset="30%" stop-color="#585b70"/>
+      <stop offset="70%" stop-color="#cba6f7"/>
+      <stop offset="100%" stop-color="#181825"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Stepped Outer Rim -->
+  <rect x="12" y="12" width="104" height="104" rx="28" fill="url(#stepped-bevel)" filter="url(#shadow)"/>
+
+  <!-- Lathe Machined Concentric Face -->
+  <rect x="16" y="16" width="96" height="96" rx="24" fill="url(#tungsten-radial)"/>
+
+  <!-- Concentric Lathe Tool Lines -->
+  <circle cx="64" cy="64" r="42" fill="none" stroke="#585b70" stroke-width="0.8" opacity="0.6"/>
+  <circle cx="64" cy="64" r="34" fill="none" stroke="#6c7086" stroke-width="0.8" opacity="0.5"/>
+  <circle cx="64" cy="64" r="26" fill="none" stroke="#585b70" stroke-width="0.8" opacity="0.4"/>
+
+  <!-- 4-Point Anisotropic Specular Flairs -->
+  <path d="M 64 16 L 64 112 M 16 64 L 112 64" stroke="#ffffff" stroke-width="1.2" opacity="0.2"/>
+
+  <!-- Core Glyph -->
+  
+        <path d="M 32 44 L 52 44 L 58 50 L 96 50 C 98 50 100 52 100 54 L 100 88 C 100 90 98 92 96 92 L 32 92 C 30 92 28 90 28 88 L 28 48 C 28 46 30 44 32 44 Z" fill="none" stroke="#f5e0dc" stroke-width="3"/>
+        <polygon points="64,62 74,78 54,78" fill="none" stroke="#cba6f7" stroke-width="2.5" stroke-linejoin="round"/>
+    
+</svg>

@@ -268,7 +268,7 @@ def run(mode):
                 show_torus = not show_torus
 
 
-def launch():
+def launch(mode=None):
     # Don't open a second fullscreen window if one is already up
     try:
         with open(LOCK_PATH, "w") as lock:
@@ -280,15 +280,16 @@ def launch():
         pass
 
     me = os.path.abspath(__file__)
+    mode_args = ["--mode", mode] if mode else []
     if shutil.which("kitty"):
         cmd = [
             "kitty", "--class", "synapse-screensaver", "--start-as", "fullscreen",
             "-o", "background=#000000", "-o", "background_opacity=1",
             "-o", "window_padding_width=0", "-o", "hide_window_decorations=yes",
             "-o", "confirm_os_window_close=0", me,
-        ]
+        ] + mode_args
     elif shutil.which("foot"):
-        cmd = ["foot", "--fullscreen", "--app-id", "synapse-screensaver", "-o", "colors.background=000000", me]
+        cmd = ["foot", "--fullscreen", "--app-id", "synapse-screensaver", "-o", "colors.background=000000", me] + mode_args
     else:
         print("synapse-screensaver: kitty or foot is required for --launch", file=sys.stderr)
         return 1
@@ -298,14 +299,31 @@ def launch():
 def main():
     parser = argparse.ArgumentParser(description="SynapseOS geodesic torus + brand screensaver")
     parser.add_argument("--launch", action="store_true", help="open fullscreen in kitty/foot")
-    parser.add_argument("--mode", choices=["cycle", "torus", "brand"], default="cycle")
+    parser.add_argument("--mode", choices=["cycle", "torus", "brand"], default=None)
     args = parser.parse_args()
+
+    mode = args.mode
+    if not mode:
+        pref_file = os.path.join(
+            os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config")), "synapse", "screensaver_mode"
+        )
+        if os.path.isfile(pref_file):
+            try:
+                with open(pref_file, "r") as f:
+                    saved = f.read().strip()
+                    if saved in ("cycle", "torus", "brand"):
+                        mode = saved
+            except OSError:
+                pass
+    if not mode:
+        mode = "torus"
+
     if args.launch:
-        return launch()
+        return launch(mode)
     if not sys.stdin.isatty():
         print("synapse-screensaver: needs a terminal (use --launch)", file=sys.stderr)
         return 1
-    return run(args.mode)
+    return run(mode)
 
 
 if __name__ == "__main__":
