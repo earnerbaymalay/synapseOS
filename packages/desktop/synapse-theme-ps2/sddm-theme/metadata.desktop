@@ -1,0 +1,12 @@
+[SddmGreeterTheme]
+Name=ps2-xfce
+Description=Catppuccin Mocha Mauve greeter with XFCE/Sway session selection for SynapseOS
+Author=ebaymlay
+License=MIT
+Type=sddm-theme
+Version=1.0
+MainScript=Main.qml
+ConfigFile=theme.conf
+Theme-Id=ps2-xfce
+Theme-API=2.0
+QtVersion=6

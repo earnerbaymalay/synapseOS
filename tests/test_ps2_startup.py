@@ -70,22 +70,19 @@ class TestSynapseOSGates(unittest.TestCase):
             / "packages"
             / "desktop"
             / "synapse-theme-ps2"
-            / "src"
-            / "synapse-cli"
-            / "ps2-startup"
             / "sddm-theme"
             / "Main.qml"
         )
-        if sddm_qml.is_file():
-            qml_text = sddm_qml.read_text(encoding="utf-8")
-            self.assertNotIn("password.text.length === 0", qml_text)
-            for legacy_blue in ("#5fb4ff", "#2b6cc0", "#174a8c", "#7cc2ff"):
-                self.assertNotIn(legacy_blue, qml_text.lower())
-            for palette_col in ("#cba6f7", "#1e1e2e", "#11111b", "#cdd6f4"):
-                self.assertIn(palette_col, qml_text.lower())
-            self.assertIn("sway.desktop", qml_text)
-            self.assertIn("xfce.desktop", qml_text)
-            self.assertIn("toggleSession", qml_text)
+        self.assertTrue(sddm_qml.is_file(), "tracked ps2-xfce Main.qml must exist")
+        qml_text = sddm_qml.read_text(encoding="utf-8")
+        self.assertNotIn("password.text.length === 0", qml_text)
+        for legacy_blue in ("#5fb4ff", "#2b6cc0", "#174a8c", "#7cc2ff"):
+            self.assertNotIn(legacy_blue, qml_text.lower())
+        for palette_col in ("#cba6f7", "#1e1e2e", "#11111b", "#cdd6f4"):
+            self.assertIn(palette_col, qml_text.lower())
+        self.assertIn("sway.desktop", qml_text)
+        self.assertIn("xfce.desktop", qml_text)
+        self.assertIn("toggleSession", qml_text)
 
         picom_conf = REPO_ROOT / "overlay" / "etc" / "xdg" / "picom.conf"
         if picom_conf.is_file():

@@ -8,7 +8,10 @@ out/
 *.iso
 *.iso.sig
 *.iso.sha256
-airootfs/
+# Generated overlay staging only; keep the archiso customize hook tracked
+/build/archiso/airootfs/etc/
+/build/archiso/airootfs/var/
+/build/archiso/airootfs/usr/
 root.x86_64/
 
 # Package Builds & Arch PKGBUILD Caches

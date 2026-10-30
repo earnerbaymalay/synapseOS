@@ -150,11 +150,12 @@ else
     warn "Pending Phase 3 deliverable: SDDM configuration in overlay/etc/sddm*"
 fi
 
-SDDM_THEME_CONF="${REPO_ROOT}/packages/desktop/synapse-theme-ps2/src/synapse-cli/ps2-startup/sddm-theme/theme.conf"
-SDDM_MAIN_QML="${REPO_ROOT}/packages/desktop/synapse-theme-ps2/src/synapse-cli/ps2-startup/sddm-theme/Main.qml"
+SDDM_THEME_CONF="${REPO_ROOT}/packages/desktop/synapse-theme-ps2/sddm-theme/theme.conf"
+SDDM_MAIN_QML="${REPO_ROOT}/packages/desktop/synapse-theme-ps2/sddm-theme/Main.qml"
 SYNAPSE_SVC="${REPO_ROOT}/packages/core/synapse-core/synapse.service"
 QF_THEME_BIN="${REPO_ROOT}/packages/desktop/llm-quickfire-panel/src/llm-quickfire-panel/bin/quickfire-theme"
-QF_DESKTOP_SRC="${REPO_ROOT}/packages/desktop/llm-quickfire-panel/src/llm-quickfire-panel/config/llm-quickfire-panel.desktop"
+QF_DESKTOP_SRC="${REPO_ROOT}/packages/desktop/llm-quickfire-panel/config/llm-quickfire-panel.desktop"
+QF_PKGBUILD="${REPO_ROOT}/packages/desktop/llm-quickfire-panel/PKGBUILD"
 
 check_file_contains "${SDDM_THEME_CONF}" "^user=synapse$" "SDDM ps2-xfce theme.conf defaults to user=synapse"
 check_file_contains "${SDDM_MAIN_QML}" "#cba6f7" "SDDM Main.qml uses Catppuccin Mauve (#cba6f7)"
@@ -176,7 +177,8 @@ fi
 check_file_contains "${SYNAPSE_SVC}" "^User=synapse-daemon$" "synapse.service isolates DynamicUser as User=synapse-daemon"
 check_file_contains "${SYNAPSE_SVC}" "^Group=synapse-daemon$" "synapse.service isolates DynamicUser as Group=synapse-daemon"
 check_file_contains "${QF_DESKTOP_SRC}" "^Exec=/usr/bin/quickfire --autostart$" "llm-quickfire-panel.desktop uses /usr/bin/quickfire --autostart"
-if grep -Fq "ps2-cyber-blue" "${QF_THEME_BIN}"; then
+check_file_contains "${QF_PKGBUILD}" "Exec=/usr/bin/quickfire --autostart" "PKGBUILD installs quickfire autostart Exec=/usr/bin/quickfire --autostart"
+if [[ -f "${QF_THEME_BIN}" ]] && grep -Fq "ps2-cyber-blue" "${QF_THEME_BIN}"; then
     fail "quickfire-theme still contains legacy ps2-cyber-blue option"
 else
     pass "quickfire-theme has zero legacy ps2-cyber-blue references"

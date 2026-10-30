@@ -1,0 +1,21 @@
+---
+description: Arch PKGBUILD conventions for SynapseOS native packages
+globs: packages/**/PKGBUILD
+alwaysApply: false
+---
+
+# PKGBUILD Rules
+
+- Keep recipes source-based (`git+https`, tracked files). Do not vendor binary `.pkg.tar.*`.
+- Use `x86_64` or `any`. Rust packages keep `-C target-cpu=x86-64-v3`.
+- Bind services to localhost when they are AI gateways (`127.0.0.1`).
+- Prefer tracked files under the package dir over gitignored `src/` for gate-checked assets.
+
+```bash
+# ❌ BAD — gate-checked greeter lives only in gitignored src/
+install -Dm644 src/sddm-theme/Main.qml "$pkgdir/usr/share/sddm/themes/ps2-xfce/Main.qml"
+
+# ✅ GOOD — tracked recipe copy with upstream fallback
+sddm_src="$startdir/sddm-theme"
+install -Dm644 "${sddm_src}/Main.qml" "$pkgdir/usr/share/sddm/themes/ps2-xfce/Main.qml"
+```

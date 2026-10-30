@@ -45,10 +45,15 @@ package() {
   done
 
   # 4. Install SDDM ps2-xfce Qt6 theme (/usr/share/sddm/themes/ps2-xfce)
+  # Prefer the tracked recipe copy so a clean clone still ships the greeter.
+  local sddm_src="sddm-theme"
+  if [[ ! -f "${sddm_src}/Main.qml" ]] && [[ -d "$startdir/sddm-theme" ]]; then
+    sddm_src="$startdir/sddm-theme"
+  fi
   install -dm755 "$pkgdir/usr/share/sddm/themes/ps2-xfce"
-  install -Dm644 "sddm-theme/Main.qml" "$pkgdir/usr/share/sddm/themes/ps2-xfce/Main.qml"
-  install -Dm644 "sddm-theme/metadata.desktop" "$pkgdir/usr/share/sddm/themes/ps2-xfce/metadata.desktop"
-  install -Dm644 "sddm-theme/theme.conf" "$pkgdir/usr/share/sddm/themes/ps2-xfce/theme.conf"
+  install -Dm644 "${sddm_src}/Main.qml" "$pkgdir/usr/share/sddm/themes/ps2-xfce/Main.qml"
+  install -Dm644 "${sddm_src}/metadata.desktop" "$pkgdir/usr/share/sddm/themes/ps2-xfce/metadata.desktop"
+  install -Dm644 "${sddm_src}/theme.conf" "$pkgdir/usr/share/sddm/themes/ps2-xfce/theme.conf"
   if [[ -f "sddm-theme/background.png" ]]; then
     install -Dm644 "sddm-theme/background.png" "$pkgdir/usr/share/sddm/themes/ps2-xfce/background.png"
     install -Dm644 "sddm-theme/background.png" "$pkgdir/usr/share/backgrounds/synapseos/ps2-xfce-background.png"
