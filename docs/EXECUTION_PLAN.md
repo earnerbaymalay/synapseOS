@@ -12,9 +12,9 @@ Compile all three native SynapseOS packages into the local `[synapseos]` reposit
    - Compiles the Rust `/usr/bin/synapse` runtime gateway with `-C target-cpu=x86-64-v3 -C opt-level=3 -C codegen-units=1`.
    - Bundles `synapse.service` (system unit on `127.0.0.1:8000`), `synapse-sync.service`, `synapse-sync.timer` (30-minute Obsidian knowledge distillation), `/etc/synapse/config.toml`, and shell completions.
 2. **`llm-quickfire-panel` (`packages/desktop/llm-quickfire-panel/PKGBUILD`)**:
-   - Packages `/usr/bin/quickfire`, `/usr/bin/quickfire-theme`, command palette aliases (`agy-palette`, `llm-quickfire-panel`), 5 curated color palettes (PS2 Cyber Blue, Catppuccin Mocha Mauve, Tokyo Night, Nord, Cyberpunk), and `/etc/xdg/autostart/llm-quickfire-panel.desktop`.
-3. **`synapse-theme-ps2` (`packages/desktop/synapse-theme-ps2/PKGBUILD`)**:
-   - Packages the PlayStation 2 startup animation (`ps2_xfce_startup.mp4`, `/usr/bin/ps2-startup`, `/usr/local/bin/ps2-system-boot`), `eof-handoff.lua`, `/usr/share/sddm/scripts/Xsetup-synapseos`, and the Qt6 SDDM theme `/usr/share/sddm/themes/ps2-xfce`.
+   - Packages `/usr/bin/quickfire`, `/usr/bin/quickfire-theme`, command palette aliases (`agy-palette`, `llm-quickfire-panel`), curated color palettes (Catppuccin Mocha Mauve, Tokyo Night, Nord, Cyberpunk, …), and `/etc/xdg/autostart/llm-quickfire-panel.desktop`.
+3. **`synapse-themes` + `synapse-greeter` (`packages/desktop/`)**:
+   - 14 wallpaper/theme variants, `synapse-theme` switcher, torus screensaver; the `synapseos` Qt6 SDDM greeter at `/usr/share/sddm/themes/synapseos`.
 4. **Repository Indexing**:
    - Run `repo-add -R out/repo/synapseos.db.tar.gz out/repo/*.pkg.tar.*`.
    - Sync `out/repo/` into `build/archiso/airootfs/var/cache/synapseos-repo/` and `/var/cache/synapseos-repo/` for `mkarchiso`.
@@ -40,7 +40,7 @@ Compile all three native SynapseOS packages into the local `[synapseos]` reposit
    - Verify output artifact `out/synapseos-YYYY.MM.DD-x86_64.iso`.
 2. **QEMU/KVM Live Boot Test**:
    - Boot the generated ISO using `qemu-system-x86_64 -enable-kvm -m 4096 -smp 4 -cdrom out/synapseos-*.iso`.
-   - Verify `systemd-boot` $\rightarrow$ `linux-cachyos` kernel $\rightarrow$ PS2 startup animation $\rightarrow$ `ps2-xfce` SDDM greeter $\rightarrow$ XFCE 4.20 desktop with `synapse.service` and `quickfire` HUD active.
+   - Verify `systemd-boot` $\rightarrow$ `linux-cachyos` kernel $\rightarrow$ `synapseos` SDDM greeter $\rightarrow$ XFCE 4.20 desktop with `synapse.service` and `quickfire` HUD active.
 
 ---
 

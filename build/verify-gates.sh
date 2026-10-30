@@ -69,8 +69,8 @@ echo "---> Gate G1: Native Package Verification (PKGBUILDs)"
 EXPECTED_PKGBUILDS=(
     "${REPO_ROOT}/packages/core/synapse-core/PKGBUILD"
     "${REPO_ROOT}/packages/desktop/llm-quickfire-panel/PKGBUILD"
-    "${REPO_ROOT}/packages/desktop/synapse-theme-ps2/PKGBUILD"
     "${REPO_ROOT}/packages/desktop/synapse-themes/PKGBUILD"
+    "${REPO_ROOT}/packages/desktop/synapse-greeter/PKGBUILD"
 )
 
 for pkgbuild in "${EXPECTED_PKGBUILDS[@]}"; do
@@ -156,28 +156,26 @@ fi
 SDDM_CONF_DIR="${REPO_ROOT}/overlay/etc/sddm.conf.d"
 SDDM_CONF_FILE="${REPO_ROOT}/overlay/etc/sddm.conf"
 if [[ -d "${SDDM_CONF_DIR}" ]] || [[ -f "${SDDM_CONF_FILE}" ]]; then
-    if grep -Rqs "ps2-xfce" "${REPO_ROOT}/overlay/etc/sddm"* 2>/dev/null; then
-        pass "SDDM theme set to ps2-xfce"
-    else
-        fail "SDDM theme ps2-xfce not found in overlay/etc/sddm*"
-    fi
-    check_file_contains "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-synapseos-ps2.conf" "HideUsers=git,ollama,synapse-daemon" "SDDM HideUsers excludes live user 'synapse'"
+    check_file_contains "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-synapseos.conf" "^Current=synapseos$" "SDDM theme set to synapseos (synapse-greeter)"
+    check_file_contains "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-synapseos.conf" "HideUsers=git,ollama,synapse-daemon" "SDDM HideUsers excludes live user 'synapse'"
 else
     warn "Pending Phase 3 deliverable: SDDM configuration in overlay/etc/sddm*"
 fi
 
-SDDM_THEME_CONF="${REPO_ROOT}/packages/desktop/synapse-theme-ps2/src/synapse-cli/ps2-startup/sddm-theme/theme.conf"
-SDDM_MAIN_QML="${REPO_ROOT}/packages/desktop/synapse-theme-ps2/src/synapse-cli/ps2-startup/sddm-theme/Main.qml"
+SDDM_THEME_CONF="${REPO_ROOT}/packages/desktop/synapse-greeter/theme.conf"
+SDDM_MAIN_QML="${REPO_ROOT}/packages/desktop/synapse-greeter/Main.qml"
 SYNAPSE_SVC="${REPO_ROOT}/packages/core/synapse-core/synapse.service"
 QF_THEME_BIN="${REPO_ROOT}/packages/desktop/llm-quickfire-panel/src/llm-quickfire-panel/bin/quickfire-theme"
 QF_DESKTOP_SRC="${REPO_ROOT}/packages/desktop/llm-quickfire-panel/src/llm-quickfire-panel/config/llm-quickfire-panel.desktop"
 
-check_file_contains "${SDDM_THEME_CONF}" "^user=synapse$" "SDDM ps2-xfce theme.conf defaults to user=synapse"
+check_file_contains "${SDDM_THEME_CONF}" "^user=$" "SDDM synapseos theme.conf pins no host-specific user"
+check_file_contains "${SDDM_THEME_CONF}" "^variant=monolith-mauve$" "SDDM synapseos theme defaults to monolith-mauve"
 check_file_contains "${SDDM_MAIN_QML}" "#cba6f7" "SDDM Main.qml uses Catppuccin Mauve (#cba6f7)"
-check_file_contains "${SDDM_MAIN_QML}" "#11111b" "SDDM Main.qml uses Obsidian Crust (#11111b)"
 check_file_contains "${SDDM_MAIN_QML}" "#cdd6f4" "SDDM Main.qml uses Liquid Silver Chrome (#cdd6f4)"
-check_file_contains "${SDDM_MAIN_QML}" "sway\.desktop" "SDDM Main.qml supports sway.desktop session selection"
-check_file_contains "${SDDM_MAIN_QML}" "toggleSession" "SDDM Main.qml provides session toggle (XFCE/Sway)"
+check_file_contains "${SDDM_MAIN_QML}" "model: sessionModel" "SDDM Main.qml offers session selection (XFCE/Sway)"
+check_file_contains "${SDDM_MAIN_QML}" "sddm\.login\(" "SDDM Main.qml authenticates via sddm.login"
+check_file_contains "${SDDM_MAIN_QML}" "strokeStyle: ShapePath\.DashLine" "SDDM panel border carries animated accent trails"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-greeter/metadata.desktop" "^QtVersion=6$" "SDDM synapseos theme targets the Qt6 greeter"
 if grep -Eq "password\.text\.length[[:space:]]*===[[:space:]]*0" "${SDDM_MAIN_QML}"; then
     fail "SDDM Main.qml blocks passwordless live user login"
 else
@@ -220,18 +218,18 @@ else
     pass "Zero legacy #00a8ff references in overlay/ and Calamares branding"
 fi
 
-if [[ -f "${REPO_ROOT}/tests/test_ps2_startup.py" ]]; then
+if [[ -f "${REPO_ROOT}/tests/test_iso_profile.py" ]]; then
     if command -v pytest >/dev/null 2>&1; then
-        if pytest -q "${REPO_ROOT}/tests/test_ps2_startup.py"; then
-            pass "Pytest UI & architecture test suite (tests/test_ps2_startup.py)"
+        if pytest -q "${REPO_ROOT}/tests/test_iso_profile.py"; then
+            pass "Pytest UI & architecture test suite (tests/test_iso_profile.py)"
         else
-            fail "Pytest suite failed (tests/test_ps2_startup.py)"
+            fail "Pytest suite failed (tests/test_iso_profile.py)"
         fi
     elif command -v python3 >/dev/null 2>&1; then
-        if python3 "${REPO_ROOT}/tests/test_ps2_startup.py" >/dev/null 2>&1; then
-            pass "Python unittest UI & architecture test suite (tests/test_ps2_startup.py)"
+        if python3 "${REPO_ROOT}/tests/test_iso_profile.py" >/dev/null 2>&1; then
+            pass "Python unittest UI & architecture test suite (tests/test_iso_profile.py)"
         else
-            fail "Python unittest suite failed (tests/test_ps2_startup.py)"
+            fail "Python unittest suite failed (tests/test_iso_profile.py)"
         fi
     fi
 fi
@@ -297,8 +295,8 @@ REQUIRED_PKGS=(
     "macchanger"
     "synapse-core"
     "llm-quickfire-panel"
-    "synapse-theme-ps2"
     "synapse-themes"
+    "synapse-greeter"
 )
 
 for pkg in "${REQUIRED_PKGS[@]}"; do
@@ -362,7 +360,7 @@ if [[ -d "${REPO_ROOT}/out/repo" ]]; then
         fi
     done
 
-    for built_pkg in "synapse-core" "llm-quickfire-panel" "synapse-theme-ps2"; do
+    for built_pkg in "synapse-core" "llm-quickfire-panel" "synapse-themes" "synapse-greeter"; do
         if compgen -G "${REPO_ROOT}/out/repo/${built_pkg}-*.pkg.tar.*" >/dev/null; then
             pass "Compiled package archive in out/repo/: ${built_pkg}"
         else
@@ -418,8 +416,11 @@ check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/users.con
 check_file_contains "${REPO_ROOT}/build/build-iso.sh" 'mkarchiso -v -C' "ISO build uses isolated build pacman.conf/keyring"
 
 # Package file-ownership conflicts (pacstrap aborts on these)
-check_file_lacks "${REPO_ROOT}/packages/desktop/synapse-theme-ps2/PKGBUILD" 'sddm/scripts/Xsetup"' "synapse-theme-ps2 does not claim sddm-owned scripts/Xsetup"
-check_file_contains "${REPO_ROOT}/overlay/etc/sddm.conf.d/10-synapseos-ps2.conf" '^DisplayCommand=/usr/share/sddm/scripts/Xsetup-synapseos$' "SDDM DisplayCommand points at Xsetup-synapseos"
+if grep -RqsiE "ps2|playstation|Xsetup-synapseos" "${REPO_ROOT}/overlay" "${REPO_ROOT}/build/archiso/packages.x86_64" "${REPO_ROOT}/build/build-iso.sh"; then
+    fail "No PS2 boot/greeter remnants in overlay, package list or build script"
+else
+    pass "No PS2 boot/greeter remnants in overlay, package list or build script"
+fi
 check_file_lacks "${REPO_ROOT}/build/build-iso.sh" 'AIROOTFS_DIR\}/etc/calamares/' "Calamares config not staged over cachyos-calamares files"
 
 # Live boot & installed-system bootability
@@ -463,10 +464,11 @@ check_file_contains "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs
 
 # V4 theme pack & screensaver
 THEMES_DIR="${REPO_ROOT}/packages/desktop/synapse-themes"
-for wp in 01-synapse-obsidian-mauve 02-synapse-ristretto-tungsten 03-synapse-crimson-carbon 04-synapse-platinum-chrome 05-synapse-obsidian-unbranded; do
+for wp in synapse-monolith-{mauve,tungsten,sapphire,emerald} synapse-tower-{mauve,tungsten,crimson,sapphire,emerald} synapse-carbon-{crimson,mauve,tungsten,sapphire,emerald}; do
     check_file_contains "${THEMES_DIR}/PKGBUILD" "^  .${wp}\\.jpg.$" "synapse-themes ships ${wp}.jpg"
 done
-check_file_contains "${THEMES_DIR}/synapse-theme" '^DEFAULT_THEME="obsidian-mauve"$' "Default system theme is obsidian-mauve"
+check_file_contains "${THEMES_DIR}/synapse-theme" '^DEFAULT_THEME="monolith-mauve"$' "Default system theme is monolith-mauve"
+check_file_contains "${THEMES_DIR}/synapse-theme" 'pkexec tee .*GREETER_CONF' "synapse-theme can sync the login screen variant (pkexec)"
 check_file_contains "${THEMES_DIR}/synapse-theme" '<Primary><Super>t' "XFCE Super+Ctrl+T opens the theme menu"
 check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/sway/config" 'Ctrl\+t exec synapse-theme --menu' "Sway Super+Ctrl+T opens the theme menu"
 check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/sway/config" "synapse-screensaver --launch" "Sway idle launches the torus screensaver"

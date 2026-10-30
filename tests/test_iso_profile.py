@@ -1,4 +1,4 @@
-"""SynapseOS Gate G3 & G4 Validation Suite for PS2 Startup, Calamares & Archiso Profile."""
+"""SynapseOS Gate G3 & G4 Validation Suite for the greeter, Calamares installer and Archiso profile."""
 
 from pathlib import Path
 import unittest
@@ -57,41 +57,25 @@ class TestSynapseOSGates(unittest.TestCase):
         self.assertIn("/run/archiso/bootmnt/synapseos/x86_64/airootfs.sfs", unpackfs)
         self.assertIn('sourcefs: "squashfs"', unpackfs)
 
-    def test_ps2_theme_and_ui_handoff(self) -> None:
-        """Validate PS2 theme PKGBUILD, SDDM Main.qml, and Picom configuration."""
-        ps2_pkg = REPO_ROOT / "packages" / "desktop" / "synapse-theme-ps2" / "PKGBUILD"
-        if ps2_pkg.is_file():
-            text = ps2_pkg.read_text(encoding="utf-8")
-            self.assertIn("ps2-xfce", text)
-            self.assertIn("ps2-system-boot", text)
+    def test_greeter_and_compositor(self) -> None:
+        """Validate the synapseos SDDM greeter, its SDDM config, and Picom configuration."""
+        greeter = REPO_ROOT / "packages" / "desktop" / "synapse-greeter"
+        qml = (greeter / "Main.qml").read_text(encoding="utf-8")
+        self.assertIn("sddm.login(", qml)
+        self.assertIn("model: sessionModel", qml)
+        self.assertIn("#cba6f7", qml.lower())
+        self.assertIn("variant=monolith-mauve", (greeter / "theme.conf").read_text(encoding="utf-8"))
 
-        sddm_qml = (
-            REPO_ROOT
-            / "packages"
-            / "desktop"
-            / "synapse-theme-ps2"
-            / "src"
-            / "synapse-cli"
-            / "ps2-startup"
-            / "sddm-theme"
-            / "Main.qml"
+        sddm_conf = (REPO_ROOT / "overlay" / "etc" / "sddm.conf.d" / "10-synapseos.conf").read_text(
+            encoding="utf-8"
         )
-        if sddm_qml.is_file():
-            qml_text = sddm_qml.read_text(encoding="utf-8")
-            self.assertNotIn("password.text.length === 0", qml_text)
-            for legacy_blue in ("#5fb4ff", "#2b6cc0", "#174a8c", "#7cc2ff"):
-                self.assertNotIn(legacy_blue, qml_text.lower())
-            for palette_col in ("#cba6f7", "#1e1e2e", "#11111b", "#cdd6f4"):
-                self.assertIn(palette_col, qml_text.lower())
-            self.assertIn("sway.desktop", qml_text)
-            self.assertIn("xfce.desktop", qml_text)
-            self.assertIn("toggleSession", qml_text)
+        self.assertIn("Current=synapseos", sddm_conf)
+        self.assertNotIn("Xsetup-synapseos", sddm_conf)
 
-        picom_conf = REPO_ROOT / "overlay" / "etc" / "xdg" / "picom.conf"
-        if picom_conf.is_file():
-            picom_text = picom_conf.read_text(encoding="utf-8")
-            self.assertIn("dual_kawase", picom_text)
-            self.assertIn("corner-radius", picom_text)
+        picom_text = (REPO_ROOT / "overlay" / "etc" / "xdg" / "picom.conf").read_text(encoding="utf-8")
+        self.assertIn("dual_kawase", picom_text)
+        self.assertIn("corner-radius", picom_text)
+        self.assertNotIn("PS2", picom_text)
 
     def test_sway_and_waybar_session_configs(self) -> None:
         """Validate Sway and Waybar dual-session configs and package list."""

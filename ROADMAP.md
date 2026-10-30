@@ -5,8 +5,7 @@
 - [x] Author comprehensive architecture specifications & comparative inspiration breakdown.
 - [x] Configure Antigravity IDE with Gemini 4 Argon high-reasoning workspace rules.
 - [x] Implement `packages/core/synapse-core/PKGBUILD` for compiling and packaging the Synapse daemon (`127.0.0.1:8000` gateway + 30m Brain sync timer).
-- [x] Implement `packages/desktop/llm-quickfire-panel/PKGBUILD` with curated color palettes (PS2 Cyber Blue, Catppuccin Mocha Mauve, Tokyo Night, Nord, Cyberpunk).
-- [x] Implement `packages/desktop/synapse-theme-ps2/PKGBUILD` for the procedural PlayStation 2 startup animation and `ps2-xfce` Qt6 SDDM theme.
+- [x] Implement `packages/desktop/llm-quickfire-panel/PKGBUILD` with curated color palettes (Catppuccin Mocha Mauve, Tokyo Night, Nord, Cyberpunk).
 - [x] Establish systemd service presets (`synapse.service`, `ollama.service`, `ananicy-cpp.service`, `firewalld.service`, `sddm.service`).
 - [x] Configure default user skeleton overlay (`overlay/etc/skel/`) with Synapse memory engine hooks and Quickfire HUD defaults.
 
@@ -18,7 +17,6 @@
 
 ## Phase 3: Cyberdeck Desktop Interface & Seamless Transitions (Completed)
 - [x] Package unified Catppuccin Mocha Mauve + Liquid Silver Chrome GTK, xfwm4, Kitty, and icon themes.
-- [x] Implement PS2 BIOS -> SDDM (`ps2-xfce`) -> XFCE 4.20 zero-blackout visual hand-off.
 - [x] Configure Picom compositor (`overlay/etc/xdg/picom.conf`) with `dual_kawase` blur and rounded corners.
 - [x] Configure optional Sway/Wayland tiling session (`overlay/etc/skel/.config/sway/config` & `waybar/{config.jsonc,style.css}`).
 - [x] Bind standalone Super-key HUD toggle (`xcape` / `Mod4+space` / `Mod4+d`) and autostart `llm-quickfire-panel`.
@@ -40,9 +38,14 @@
 - [x] Verify CachyOS package signatures (drop `Optional TrustAll`; ship `cachyos-keyring`; isolated, fingerprint-pinned build keyring).
 - [x] Generate pacman keyring per boot (`pacman-init.service`) instead of baking a master key into the ISO.
 - [x] Calamares `shellprocess@cleanup`: remove live NOPASSWD sudoers + passwordless live user, fresh keyring on install; `users.conf` wheel sudo with password.
-- [x] Resolve pacstrap file conflicts (`Xsetup-synapseos`, Calamares config applied after `cachyos-calamares`).
+- [x] Resolve pacstrap file conflicts (Calamares config applied after `cachyos-calamares`).
 - [x] Live ISO bootability: archiso initramfs hooks (`mkinitcpio.conf.d/archiso.conf`), microcode via hook instead of missing `*-ucode.img` initrds.
 - [x] Installed-system bootability: restore kernels emptied from `/boot` by mkarchiso, drop archiso hooks, `initcpiocfg`/`initcpio`, GRUB `bootloader.conf` (not cachyos limine default), `mount.conf` Btrfs layout.
 - [x] Calamares privacy: own `welcome.conf`/`locale.conf` with no GeoIP lookup; fix invalid YAML in `partition.conf`.
-- [ ] Native 4K re-renders of the V4 wallpapers.
+- [x] Wallpaper set: 3 designs x accent variants (14), Basalt Tower SYNAPSE-branded; theme ids `<design>-<accent>`.
+- [x] `synapse-greeter`: `synapseos` Qt6 SDDM theme (right-aligned clock + system readout, chamfered panel with animated accent trails); `synapse-theme --sync-greeter`.
+- [x] Remove the PlayStation 2 boot animation and greeter (`synapse-theme-ps2`).
+- [ ] Boot animation: laser-engraved geometric S (Zorin-style), replacing PS2.
+- [ ] First-boot onboarding wizard (theme, privacy defaults, local model pull, HUD intro).
+- [ ] Native 4K re-renders of the wallpapers.
 - [ ] Stage C: full `mkarchiso` build + QEMU/KVM boot verification; Stage D: `v0.1.0-alpha` release.

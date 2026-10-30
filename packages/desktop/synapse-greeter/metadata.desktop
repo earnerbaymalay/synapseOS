@@ -1,0 +1,12 @@
+[SddmGreeterTheme]
+Name=SynapseOS
+Description=SynapseOS login: right-aligned clock and system readout, chamfered panel with animated accent trails that follow the active theme variant
+Author=SynapseOS Project
+License=MIT
+Type=sddm-theme
+Version=0.1.0
+MainScript=Main.qml
+ConfigFile=theme.conf
+Theme-Id=synapseos
+Theme-API=2.0
+QtVersion=6

@@ -28,11 +28,11 @@ THEME_FILE = os.path.join(
     os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config")), "synapse", "theme"
 )
 ACCENTS = {
-    "obsidian-mauve": "#cba6f7",
-    "obsidian-basalt": "#cba6f7",
-    "ristretto-tungsten": "#fab387",
-    "crimson-carbon": "#f38ba8",
-    "platinum-chrome": "#cdd6f4",
+    "mauve": "#cba6f7",
+    "tungsten": "#fab387",
+    "crimson": "#f38ba8",
+    "sapphire": "#74c7ec",
+    "emerald": "#a6e3a1",
 }
 FPS = 30
 TORUS_SECONDS = 40
@@ -68,9 +68,10 @@ def scale_rgb(rgb, k):
 def accent_rgb():
     try:
         with open(THEME_FILE) as fh:
-            return hex_rgb(ACCENTS.get(fh.read().strip(), ACCENTS["obsidian-mauve"]))
+            # theme ids are <design>-<accent>, e.g. monolith-mauve
+            return hex_rgb(ACCENTS.get(fh.read().strip().rsplit("-", 1)[-1], ACCENTS["mauve"]))
     except OSError:
-        return hex_rgb(ACCENTS["obsidian-mauve"])
+        return hex_rgb(ACCENTS["mauve"])
 
 
 class Terminal:

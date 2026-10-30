@@ -1,0 +1,20 @@
+# Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
+pkgname=synapse-greeter
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="SynapseOS SDDM login theme: clock + system readout, chamfered panel with animated accent trails"
+arch=('any')
+url="https://github.com/earnerbaymalay/synapseOS"
+license=('MIT')
+depends=('sddm' 'qt6-declarative' 'synapse-themes' 'ttf-jetbrains-mono-nerd')
+source=('Main.qml' 'metadata.desktop' 'theme.conf')
+sha256sums=('3d490d0428714c5f31a3c0766263ccdc3c068d0d2334b617a2ee6391e119472b'
+            '0e352244f026b5c6a84df1b0a5e01d0e8c06c44e30216bf4d774adff5115c4c4'
+            '2105e533a650700d15a50a742d23146c5f2c0d196b8ba824e477e9f2a0d4ae6e')
+
+package() {
+  local f
+  for f in Main.qml metadata.desktop theme.conf; do
+    install -Dm644 "$f" "$pkgdir/usr/share/sddm/themes/synapseos/$f"
+  done
+}

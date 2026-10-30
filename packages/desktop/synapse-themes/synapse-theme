@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # synapse-theme — SynapseOS system theme switcher (wallpaper + Kitty + Rofi palette)
-# Usage: synapse-theme [THEME] | --menu | --restore | --list | --register-shortcut
+# Usage: synapse-theme [THEME] | --menu | --restore | --list | --register-shortcut | --sync-greeter [THEME]
 set -euo pipefail
 
 WALLPAPER_DIR="/usr/share/backgrounds/synapseos"
@@ -9,16 +9,27 @@ STATE_FILE="${CONFIG_DIR}/synapse/theme"
 # Shared with quickfire-theme so Kitty/Rofi pick up whichever switcher ran last
 KITTY_THEME_FILE="${CONFIG_DIR}/kitty/quickfire-colors.conf"
 ROFI_THEME_FILE="${CONFIG_DIR}/rofi/quickfire-theme.rasi"
-DEFAULT_THEME="obsidian-mauve"
+DEFAULT_THEME="monolith-mauve"
 XFCE_SHORTCUT="<Primary><Super>t"
+# Login screen (synapse-greeter) reads its variant from this SDDM theme override
+GREETER_CONF="/usr/share/sddm/themes/synapseos/theme.conf.user"
 
 # id|label|wallpaper|base|surface|accent|secondary
 THEMES=(
-    "obsidian-mauve|Obsidian Mauve (Ultraviolet Mauve)|01-synapse-obsidian-mauve.jpg|#09090d|#181825|#cba6f7|#cdd6f4"
-    "ristretto-tungsten|Ristretto Tungsten (Molten Tungsten)|02-synapse-ristretto-tungsten.jpg|#09090d|#161412|#fab387|#a6adc8"
-    "crimson-carbon|Crimson Carbon (Crimson Ember)|03-synapse-crimson-carbon.jpg|#09090d|#14141d|#f38ba8|#bac2de"
-    "platinum-chrome|Platinum Chrome (Liquid Silver)|04-synapse-platinum-chrome.jpg|#08080c|#121216|#cdd6f4|#7f849c"
-    "obsidian-basalt|Obsidian Basalt (Unbranded, Mauve palette)|05-synapse-obsidian-unbranded.jpg|#09090d|#181825|#cba6f7|#cdd6f4"
+    "monolith-mauve|Monolith · Mauve|synapse-monolith-mauve.jpg|#09090d|#181825|#cba6f7|#cdd6f4"
+    "monolith-tungsten|Monolith · Tungsten|synapse-monolith-tungsten.jpg|#09090d|#1a1512|#fab387|#a6adc8"
+    "monolith-sapphire|Monolith · Sapphire|synapse-monolith-sapphire.jpg|#09090d|#11181e|#74c7ec|#bac2de"
+    "monolith-emerald|Monolith · Emerald|synapse-monolith-emerald.jpg|#09090d|#121a14|#a6e3a1|#a6adc8"
+    "tower-mauve|Basalt Tower · Mauve|synapse-tower-mauve.jpg|#09090d|#181825|#cba6f7|#cdd6f4"
+    "tower-tungsten|Basalt Tower · Tungsten|synapse-tower-tungsten.jpg|#09090d|#1a1512|#fab387|#a6adc8"
+    "tower-crimson|Basalt Tower · Crimson|synapse-tower-crimson.jpg|#09090d|#1c1418|#f38ba8|#bac2de"
+    "tower-sapphire|Basalt Tower · Sapphire|synapse-tower-sapphire.jpg|#09090d|#11181e|#74c7ec|#bac2de"
+    "tower-emerald|Basalt Tower · Emerald|synapse-tower-emerald.jpg|#09090d|#121a14|#a6e3a1|#a6adc8"
+    "carbon-crimson|Forged Carbon · Crimson|synapse-carbon-crimson.jpg|#09090d|#1c1418|#f38ba8|#bac2de"
+    "carbon-mauve|Forged Carbon · Mauve|synapse-carbon-mauve.jpg|#09090d|#181825|#cba6f7|#cdd6f4"
+    "carbon-tungsten|Forged Carbon · Tungsten|synapse-carbon-tungsten.jpg|#09090d|#1a1512|#fab387|#a6adc8"
+    "carbon-sapphire|Forged Carbon · Sapphire|synapse-carbon-sapphire.jpg|#09090d|#11181e|#74c7ec|#bac2de"
+    "carbon-emerald|Forged Carbon · Emerald|synapse-carbon-emerald.jpg|#09090d|#121a14|#a6e3a1|#a6adc8"
 )
 
 lookup() {
@@ -141,6 +152,14 @@ apply_theme() {
     fi
 }
 
+# The greeter runs before any user logs in and can't read ~/.config, so syncing
+# writes a root-owned override; pkexec asks for the admin password each time.
+sync_greeter() {
+    local id="$1"
+    lookup "$id" >/dev/null || { echo "synapse-theme: unknown theme '$id' (see --list)" >&2; return 1; }
+    printf '[General]\nvariant=%s\n' "$id" | pkexec tee "$GREETER_CONF" >/dev/null
+}
+
 register_shortcut() {
     command -v xfconf-query >/dev/null 2>&1 || return 0
     local prop="/commands/custom/${XFCE_SHORTCUT}"
@@ -174,6 +193,10 @@ case "${1:---menu}" in
         ;;
     --register-shortcut)
         register_shortcut
+        ;;
+    --sync-greeter)
+        current="$(cat "$STATE_FILE" 2>/dev/null || true)"
+        sync_greeter "${2:-${current:-$DEFAULT_THEME}}"
         ;;
     --list)
         for entry in "${THEMES[@]}"; do

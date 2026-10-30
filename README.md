@@ -18,7 +18,7 @@ SynapseOS merges four powerful principles into one seamless operating system:
 
 1. **CachyOS Performance**: Custom BORE / EEVDF CPU schedulers (`linux-cachyos`), `x86-64-v3` microarchitecture optimization, aggressive ZRAM `zstd` compression (`vm.swappiness=180`), TCP BBR, and `ananicy-cpp` process auto-nicing.
 2. **EndeavourOS Foundation**: Clean, unbloated upstream Arch Linux rolling foundation, transparent packaging, Calamares installer with Btrfs `@` subvolume layouts, and native systemd management.
-3. **Omarchy & PS2 Cyberdeck Aesthetic**: Monospace terminal-first environment, procedural PlayStation 2 BIOS-to-SDDM-to-XFCE visual hand-off, Picom `dual_kawase` glass blur, Catppuccin Mocha Mauve + PS2 Cyber Blue visuals, and instant Super-key command palettes (`llm-quickfire-panel`).
+3. **Omarchy-style Cyberdeck Aesthetic**: Monospace terminal-first environment, the `synapseos` SDDM greeter (clock + system readout, animated accent-trail panel), 14 SynapseOS wallpaper/theme variants, Picom `dual_kawase` glass blur, Catppuccin Mocha accents, and instant Super-key command palettes (`llm-quickfire-panel`).
 4. **Synapse AI Core**: Deeply built into the core OS package (`synapse-core`), providing a `127.0.0.1:8000` runtime proxy, bidirectional context firewall, 3-layer persistent agent memory, and local Ollama LLM routing out of the box.
 
 ---
@@ -42,8 +42,8 @@ synapseOS/
 │   └── verify-gates.sh      # Gate G1-G4 verification test harness
 ├── packages/                # Native Arch Linux PKGBUILD recipes & installer configs
 │   ├── core/synapse-core/   # PKGBUILD for Synapse runtime gateway & systemd units
-│   ├── desktop/             # llm-quickfire-panel & synapse-theme-ps2 PKGBUILDs
-│   └── installer/calamares/ # Calamares settings, PS2/Catppuccin branding & Btrfs modules
+│   ├── desktop/             # llm-quickfire-panel, synapse-themes & synapse-greeter PKGBUILDs
+│   └── installer/calamares/ # Calamares settings, Catppuccin branding & Btrfs modules
 ├── overlay/                 # Root filesystem overlays (/etc, sysctl, NetworkManager, skel)
 ├── tests/                   # Automated pytest verification suite
 ├── AGENTS.md                # System instructions & Prime Directive

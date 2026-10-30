@@ -154,5 +154,5 @@ bluez-utils
 # --- SynapseOS Native Packages ([synapseos] Repo) ---
 synapse-core
 llm-quickfire-panel
-synapse-theme-ps2
 synapse-themes
+synapse-greeter

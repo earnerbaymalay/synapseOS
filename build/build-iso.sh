@@ -92,6 +92,11 @@ for req in "${REQUIRED_PROFILE_FILES[@]}"; do
 done
 
 # 2. Synchronize overlay/ into build/archiso/airootfs/etc
+# Reset generated staging first (gitignored files only; tracked airootfs files stay)
+# so overlay files that were renamed or removed don't linger in the image.
+if git -C "${REPO_ROOT}" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git -C "${REPO_ROOT}" clean -fdXq -- "${AIROOTFS_DIR}"
+fi
 mkdir -p "${AIROOTFS_DIR}/etc"
 
 if [[ -d "${OVERLAY_DIR}/etc" ]]; then
@@ -141,17 +146,11 @@ build_local_packages() {
         cp -af "${REPO_ROOT}/../llm-quickfire-panel" "${qf_dir}/src/llm-quickfire-panel"
     fi
 
-    local ps2_dir="${REPO_ROOT}/packages/desktop/synapse-theme-ps2"
-    if [[ ! -d "${ps2_dir}/src/synapse-cli/ps2-startup" ]] && [[ -d "${REPO_ROOT}/../ps2-startup" ]]; then
-        mkdir -p "${ps2_dir}/src/synapse-cli"
-        cp -af "${REPO_ROOT}/../ps2-startup" "${ps2_dir}/src/synapse-cli/ps2-startup"
-    fi
-
     local pkg_dirs=(
         "${REPO_ROOT}/packages/core/synapse-core"
         "${REPO_ROOT}/packages/desktop/llm-quickfire-panel"
-        "${REPO_ROOT}/packages/desktop/synapse-theme-ps2"
         "${REPO_ROOT}/packages/desktop/synapse-themes"
+        "${REPO_ROOT}/packages/desktop/synapse-greeter"
     )
 
     for pkg_dir in "${pkg_dirs[@]}"; do
@@ -183,13 +182,16 @@ build_local_packages() {
         repo-add -R "${LOCAL_REPO_DIR}/synapseos.db.tar.gz" "${LOCAL_REPO_DIR}"/*.pkg.tar.*
     fi
 
-    # Stage local repository into airootfs so live/installed environment has cached packages
-    mkdir -p "${AIROOTFS_DIR}${SYSTEM_REPO_DIR}"
-    cp -af "${LOCAL_REPO_DIR}/." "${AIROOTFS_DIR}${SYSTEM_REPO_DIR}/"
 }
 
 if [[ "${BUILD_PKGS}" -eq 1 ]]; then
     build_local_packages
+fi
+
+# Stage local repository into airootfs so live/installed environment has cached packages
+if compgen -G "${LOCAL_REPO_DIR}/*.pkg.tar.*" > /dev/null; then
+    mkdir -p "${AIROOTFS_DIR}${SYSTEM_REPO_DIR}"
+    cp -af "${LOCAL_REPO_DIR}/." "${AIROOTFS_DIR}${SYSTEM_REPO_DIR}/"
 fi
 
 # 5. Dry-run check mode (non-root safe)

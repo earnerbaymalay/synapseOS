@@ -1,8 +1,8 @@
 # Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
 pkgname=synapse-themes
 pkgver=0.1.0
-pkgrel=1
-pkgdesc="SynapseOS V4 wallpapers, system theme switcher (Super+Ctrl+T) and geodesic torus screensaver"
+pkgrel=2
+pkgdesc="SynapseOS wallpapers (3 designs x accent variants), system theme switcher (Super+Ctrl+T) and geodesic torus screensaver"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"
 license=('MIT')
@@ -18,23 +18,41 @@ source=(
   'synapse-theme-restore.desktop'
   'synapse-idle.desktop'
   'synapse-screensaver.desktop'
-  '01-synapse-obsidian-mauve.jpg'
-  '02-synapse-ristretto-tungsten.jpg'
-  '03-synapse-crimson-carbon.jpg'
-  '04-synapse-platinum-chrome.jpg'
-  '05-synapse-obsidian-unbranded.jpg'
+  'synapse-carbon-crimson.jpg'
+  'synapse-carbon-emerald.jpg'
+  'synapse-carbon-mauve.jpg'
+  'synapse-carbon-sapphire.jpg'
+  'synapse-carbon-tungsten.jpg'
+  'synapse-monolith-emerald.jpg'
+  'synapse-monolith-mauve.jpg'
+  'synapse-monolith-sapphire.jpg'
+  'synapse-monolith-tungsten.jpg'
+  'synapse-tower-crimson.jpg'
+  'synapse-tower-emerald.jpg'
+  'synapse-tower-mauve.jpg'
+  'synapse-tower-sapphire.jpg'
+  'synapse-tower-tungsten.jpg'
 )
-sha256sums=('e023a90647fcaff9a181350444383d7f90029f5b69abe36fa7920a0f85693f3b'
-            '2de6ca640e72d529667d42924ae13de9061209068955d24be1c68c90f5584dd6'
+sha256sums=('8b36e5a15a487c40b2980c1c282b2f05d99a780729a66672eca47fb0b811f422'
+            'f6a4386c72780d0b7313c281a96a5568cdbb51b929c8f4ca77d39bb6c15511d8'
             '3edb549f83489e57d50dd0c0fed2ec09675459621848d7a50f09822b2986be10'
             '72456c7558db818fb155071c4686e83e1f03f97aa1de6826ac9eec2f943893a2'
             '862105cea2f2a67bfc70d1011ffd66f5a2b62e7f6e62fa92e046b03394feed0f'
             'ac1b728bf8d51da1621de4617eace24d2377ed4d1bd6695d3e2145261f4ec584'
-            'be9156af352271b37cb9267b3366c633ed5a23a09614969528bbb98724c5f594'
-            '8fcd592f3d6679f4b9a2f3711dc51e24fa731312db88f734d542fde172ff0af5'
-            '333189c3fd80db658393296c54647c1c611907bc7389922b43b76742d2b87456'
-            'bff47c7028cd0902c908eec9a6af8970f073624bdf133dc492c43bc3cdade1ed'
-            'c250db67e1ec4b2cdebbe79ccb349345191e900bbd5aa650103a2fbe0b2b68f4')
+            '352f4974596a8e0e991a669a304fa3bcf3d0a53c2139bffd2191fdd46509c922'
+            '33f8b663429bb4000cc5db1227674399a7a4ce2c1aecd6207e1c23338c71351f'
+            '5f91e1ccf68e9783f3cd318961cb942735d0532c02a197df64ce067cc1f06e82'
+            '0d16eab84e6207c5f182c144afa4b8dce9cbf52b7f63cfad4565fd45a97e428d'
+            '333d1728457782505c02dabaa5e7e25c5011cd949ffd44564284c3ec1549c681'
+            'fceda6896beb42b343ff380c9cb6cd6090ab83fcdcdbd137c0de04293c325f4b'
+            '1b4e7a8d9729107e1b39dd23dc22f71f08c0bdbe4d0760af678a080b865a642c'
+            '6fb3ff0b0d34e65f98fa827c99828a418befa13227911283f4d95bdeefa9b04b'
+            'caa75a0a4ee86761d2bebfcd72c2945bcfbf38934e106a66f319ab676aec20cc'
+            '7f564de84052c96cf7d27787bfd831db3e16550ac21a717b884d18a64da67cbc'
+            '1314b010c2679507c157f8f6a5cdc204f78e826b7f7774986a9f15bb3a68ce8e'
+            'cd93a26e5519a36dedfdca406df9ef7c36d7a629b170347ad2ea5e5e71deae7e'
+            '4683dd1f37762820f197d0ed7ea8bc5004f9fda82dcff5f68e91ab0d7db9506f'
+            '57d51af88961c1b62118e5fef501d2afb981267b71ffc149299f3874be5bd172')
 
 package() {
   install -Dm755 synapse-theme "$pkgdir/usr/bin/synapse-theme"
@@ -46,7 +64,7 @@ package() {
   install -Dm644 synapse-screensaver.desktop "$pkgdir/usr/share/applications/synapse-screensaver.desktop"
 
   local wp
-  for wp in 0{1..5}-synapse-*.jpg; do
+  for wp in synapse-*.jpg; do
     install -Dm644 "$wp" "$pkgdir/usr/share/backgrounds/synapseos/$wp"
   done
 }
