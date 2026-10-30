@@ -55,6 +55,13 @@ package() {
   # Install core binary
   install -Dm755 "target/release/synapse" "$pkgdir/usr/bin/synapse"
 
+  # Install squash wrapper for context compression (JFrog Boost equivalent)
+  cat > "$pkgdir/usr/bin/squash" << 'EOF'
+#!/bin/sh
+exec /usr/bin/synapse squash "$@"
+EOF
+  chmod 755 "$pkgdir/usr/bin/squash"
+
   # Install system and user systemd units
   install -Dm644 "$srcdir/synapse.service" "$pkgdir/usr/lib/systemd/system/synapse.service"
   install -Dm644 "$srcdir/synapse-sync.service" "$pkgdir/usr/lib/systemd/user/synapse-sync.service"
