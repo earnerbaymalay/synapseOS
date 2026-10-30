@@ -69,6 +69,7 @@ sddm
 qt6-svg
 qt6-declarative
 qt6-5compat
+python-pyqt6
 picom
 kitty
 rofi
@@ -86,6 +87,11 @@ python-cairo
 python-gobject
 gtk3
 gtk4
+
+# --- Productivity, Text & Hardened Zero-Telemetry Web ---
+chromium
+galculator
+mousepad
 
 # --- Optional Wayland Tiling Session (Sway + Waybar) ---
 sway
@@ -154,6 +160,7 @@ bluez-utils
 
 # --- SynapseOS Native Packages ([synapseos] Repo) ---
 synapse-core
+synapse-hud
 llm-quickfire-panel
 synapse-themes
 synapse-greeter

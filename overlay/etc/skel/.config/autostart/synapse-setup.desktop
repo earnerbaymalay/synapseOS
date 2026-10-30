@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=SynapseOS First-Boot Initializer
+Comment=Background Local LLM and Environment Setup
+Exec=/usr/bin/synapse-setup --first-boot
+Hidden=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
+StartupNotify=false
+Terminal=false

@@ -1,0 +1,192 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# synapse-setup — SynapseOS First-Boot Initializer & System AI Manager
+# FOSS | Zero-Telemetry | Autonomous LLM Orchestration
+# ==============================================================================
+set -eo pipefail
+
+STATE_DIR="${HOME}/.config/synapse"
+FIRSTBOOT_FLAG="${STATE_DIR}/.firstboot_complete"
+DEFAULT_MODEL="qwen2.5-coder:latest"
+OLLAMA_API="http://127.0.0.1:11434"
+
+show_help() {
+    cat << 'EOF'
+synapse-setup — SynapseOS Environment & Local AI Initializer
+
+Usage:
+  synapse-setup [OPTIONS]
+
+Options:
+  --first-boot        Run non-blocking first-boot initialization in background
+  --status            Display local AI, network stealth, and system status
+  --pull-model [NAME] Pull and warm a local LLM model (default: qwen2.5-coder:latest)
+  --reset-firstboot   Reset the first-boot flag to trigger initialization again
+  --help, -h          Show this help message
+EOF
+}
+
+is_online() {
+    # Check DNS / ping to Quad9 without sending identifying telemetry
+    if command -v nc >/dev/null 2>&1; then
+        nc -z -w 3 9.9.9.9 53 >/dev/null 2>&1 && return 0
+    fi
+    ping -c 1 -W 3 9.9.9.9 >/dev/null 2>&1 && return 0
+    return 1
+}
+
+notify() {
+    local title="$1"
+    local message="$2"
+    local icon="${3:-dialog-information}"
+    if command -v notify-send >/dev/null 2>&1 && [[ -n "${DISPLAY:-${WAYLAND_DISPLAY:-}}" ]]; then
+        notify-send -a "Synapse AI" -i "${icon}" "${title}" "${message}" 2>/dev/null || true
+    fi
+}
+
+check_ollama() {
+    curl -s --connect-timeout 2 "${OLLAMA_API}/api/tags" >/dev/null 2>&1
+}
+
+ensure_ollama_running() {
+    if check_ollama; then
+        return 0
+    fi
+    # Attempt to start user or system service
+    systemctl --user start ollama 2>/dev/null || sudo systemctl start ollama 2>/dev/null || true
+    for _ in {1..10}; do
+        if check_ollama; then
+            return 0
+        fi
+        sleep 1
+    done
+    return 1
+}
+
+model_exists() {
+    local target="${1:-$DEFAULT_MODEL}"
+    local base="${target%%:*}"
+    curl -s "${OLLAMA_API}/api/tags" 2>/dev/null | grep -q "\"name\":\"${base}"
+}
+
+run_first_boot() {
+    mkdir -p "${STATE_DIR}"
+    if [[ -f "${FIRSTBOOT_FLAG}" ]]; then
+        exit 0
+    fi
+
+    # Give desktop session 5 seconds to settle
+    sleep 5
+
+    # Check network connectivity
+    if ! is_online; then
+        # Offline: exit silently so next boot or connection retry can pick up
+        exit 0
+    fi
+
+    if ! ensure_ollama_running; then
+        exit 0
+    fi
+
+    if ! model_exists "${DEFAULT_MODEL}"; then
+        notify "Synapse AI Setup" "Downloading local LLM model (${DEFAULT_MODEL}) in background..." "system-software-update"
+        
+        # Download at idle CPU/IO priority
+        if command -v ionice >/dev/null 2>&1; then
+            nice -n 19 ionice -c 3 ollama pull "${DEFAULT_MODEL}" >/dev/null 2>&1 || true
+        else
+            nice -n 19 ollama pull "${DEFAULT_MODEL}" >/dev/null 2>&1 || true
+        fi
+
+        # Pre-warm model in background
+        if model_exists "${DEFAULT_MODEL}"; then
+            curl -s -X POST "${OLLAMA_API}/api/generate" -d "{\"model\": \"${DEFAULT_MODEL}\", \"prompt\": \"Ready\"}" >/dev/null 2>&1 &
+            notify "Synapse AI Ready" "Model ${DEFAULT_MODEL} initialized. Quickfire & Synapse HUD are ready." "dialog-information"
+        fi
+    fi
+
+    touch "${FIRSTBOOT_FLAG}"
+}
+
+pull_model() {
+    local model="${1:-$DEFAULT_MODEL}"
+    echo "==> Ensuring Ollama runtime is active..."
+    if ! ensure_ollama_running; then
+        echo "[ERROR] Could not connect to Ollama service at ${OLLAMA_API}" >&2
+        return 1
+    fi
+
+    echo "==> Pulling model: ${model}..."
+    ollama pull "${model}"
+    echo "==> Pre-warming model cache..."
+    curl -s -X POST "${OLLAMA_API}/api/generate" -d "{\"model\": \"${model}\", \"prompt\": \"Ready\"}" >/dev/null 2>&1 &
+    echo "==> Model ${model} is ready for inference."
+}
+
+show_status() {
+    echo "=============================================================================="
+    echo " SynapseOS System & AI Environment Status"
+    echo "=============================================================================="
+    
+    # 1. Ollama
+    if check_ollama; then
+        echo "  [AI Engine]      Ollama is RUNNING (port 11434)"
+        local models
+        models=$(curl -s "${OLLAMA_API}/api/tags" 2>/dev/null | grep -o '"name":"[^"]*"' | cut -d'"' -f4 | tr '\n' ' ')
+        echo "  [Models]         ${models:-None installed}"
+    else
+        echo "  [AI Engine]      Ollama is INACTIVE"
+    fi
+
+    # 2. Synapse Core Daemon
+    if systemctl is-active synapse >/dev/null 2>&1; then
+        echo "  [Synapse Core]   Active (http://127.0.0.1:8000)"
+    else
+        echo "  [Synapse Core]   Inactive or not enabled"
+    fi
+
+    # 3. Privacy & Stealth (Prime Directive)
+    if resolvectl status 2>/dev/null | grep -q "9.9.9.9"; then
+        echo "  [DNS-over-TLS]   Quad9 DoT (9.9.9.9:853) ACTIVE"
+    else
+        echo "  [DNS-over-TLS]   Standard DNS (or Quad9 inactive)"
+    fi
+
+    if systemctl is-active firewalld >/dev/null 2>&1; then
+        echo "  [Firewall]       firewalld ACTIVE (stealth posture)"
+    else
+        echo "  [Firewall]       Inactive"
+    fi
+
+    # 4. First-boot status
+    if [[ -f "${FIRSTBOOT_FLAG}" ]]; then
+        echo "  [First-Boot]     Completed"
+    else
+        echo "  [First-Boot]     Pending background execution"
+    fi
+    echo "=============================================================================="
+}
+
+case "${1:-}" in
+    --first-boot)
+        run_first_boot
+        ;;
+    --pull-model)
+        pull_model "${2:-$DEFAULT_MODEL}"
+        ;;
+    --status)
+        show_status
+        ;;
+    --reset-firstboot)
+        rm -f "${FIRSTBOOT_FLAG}"
+        echo "First-boot marker removed. Next session will trigger setup."
+        ;;
+    --help|-h)
+        show_help
+        ;;
+    *)
+        show_status
+        echo ""
+        echo "Run 'synapse-setup --help' for available management commands."
+        ;;
+esac

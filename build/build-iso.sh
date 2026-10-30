@@ -152,6 +152,7 @@ build_local_packages() {
         "${REPO_ROOT}/packages/desktop/synapse-themes"
         "${REPO_ROOT}/packages/desktop/synapse-greeter"
         "${REPO_ROOT}/packages/desktop/synapse-plymouth"
+        "${REPO_ROOT}/packages/desktop/synapse-hud"
     )
 
     for pkg_dir in "${pkg_dirs[@]}"; do

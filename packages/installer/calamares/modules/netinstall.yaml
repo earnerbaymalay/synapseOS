@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 SynapseOS Project
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# SynapseOS Optional Feature Packs Manifest
+---
+- name: "Pentest Heavy & RF Stack"
+  description: "Advanced RF analysis, offensive security & penetration testing tools"
+  hidden: false
+  selected: false
+  critical: false
+  packages:
+    - aircrack-ng
+    - hashcat
+    - metasploit
+    - responder
+    - sqlmap
+    - hydra
+
+- name: "Creative & Office Productivity"
+  description: "Comprehensive FOSS document editing, vector graphics, and media authoring suite"
+  hidden: false
+  selected: false
+  critical: false
+  packages:
+    - libreoffice-fresh
+    - inkscape
+    - rawtherapee
+    - gimp
+
+- name: "Daily Desktop & Audio Essentials"
+  description: "Advanced PipeWire DSP effects (EasyEffects) and desktop communication tools"
+  hidden: false
+  selected: false
+  critical: false
+  packages:
+    - easyeffects
+    - lsp-plugins
+    - thunderbird

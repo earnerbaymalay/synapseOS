@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Synapse Notes
+Comment=Material You Markdown Scratchpad synced with AI Brain
+Exec=/usr/bin/synapse-notes
+Icon=accessories-text-editor
+Terminal=false
+Type=Application
+Categories=Utility;TextEditor;Office;
+Keywords=notes;scratchpad;markdown;brain;synapse;

@@ -35,7 +35,7 @@ check_file_contains() {
         fail "${description} (file missing: ${file#"${REPO_ROOT}/"})"
         return
     fi
-    if grep -Eq "${pattern}" "${file}"; then
+    if grep -Eq -e "${pattern}" "${file}"; then
         pass "${description}"
     else
         fail "${description} (pattern '${pattern}' not found in ${file#"${REPO_ROOT}/"})"
@@ -72,6 +72,7 @@ EXPECTED_PKGBUILDS=(
     "${REPO_ROOT}/packages/desktop/synapse-themes/PKGBUILD"
     "${REPO_ROOT}/packages/desktop/synapse-greeter/PKGBUILD"
     "${REPO_ROOT}/packages/desktop/synapse-plymouth/PKGBUILD"
+    "${REPO_ROOT}/packages/desktop/synapse-hud/PKGBUILD"
 )
 
 for pkgbuild in "${EXPECTED_PKGBUILDS[@]}"; do
@@ -201,8 +202,8 @@ SWAY_CONF="${REPO_ROOT}/overlay/etc/skel/.config/sway/config"
 WAYBAR_CONF="${REPO_ROOT}/overlay/etc/skel/.config/waybar/config.jsonc"
 WAYBAR_STYLE="${REPO_ROOT}/overlay/etc/skel/.config/waybar/style.css"
 
-check_file_contains "${SWAY_CONF}" "Mod4\+space.*(/usr/bin/quickfire|\$menu)" "Sway config binds Mod4+space to /usr/bin/quickfire"
-check_file_contains "${SWAY_CONF}" "Mod4\+d.*(/usr/bin/quickfire|\$menu)" "Sway config binds Mod4+d to /usr/bin/quickfire"
+check_file_contains "${SWAY_CONF}" "Mod4\+space.*(/usr/bin/(quickfire|synapse-hud)|\$menu)" "Sway config binds Mod4+space to /usr/bin/synapse-hud or quickfire"
+check_file_contains "${SWAY_CONF}" "Mod4\+d.*(/usr/bin/(quickfire|synapse-hud)|\$menu)" "Sway config binds Mod4+d to /usr/bin/synapse-hud or quickfire"
 check_file_contains "${SWAY_CONF}" "Mod4\+Return.*(kitty|foot|\$term)" "Sway config binds Mod4+Return to kitty/foot"
 check_file_contains "${SWAY_CONF}" "#11111b" "Sway config uses Obsidian Crust (#11111b)"
 check_file_contains "${SWAY_CONF}" "#cba6f7" "Sway config uses Catppuccin Mocha Mauve (#cba6f7)"
@@ -363,7 +364,7 @@ if [[ -d "${REPO_ROOT}/out/repo" ]]; then
         fi
     done
 
-    for built_pkg in "synapse-core" "llm-quickfire-panel" "synapse-themes" "synapse-greeter" "synapse-plymouth"; do
+    for built_pkg in "synapse-core" "llm-quickfire-panel" "synapse-themes" "synapse-greeter" "synapse-plymouth" "synapse-hud"; do
         if compgen -G "${REPO_ROOT}/out/repo/${built_pkg}-*.pkg.tar.*" >/dev/null; then
             pass "Compiled package archive in out/repo/: ${built_pkg}"
         else
@@ -375,7 +376,7 @@ fi
 check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/pacman.d/cachyos-mirrorlist" "mirror\.cachyos\.org/repo/x86_64" "Staged airootfs CachyOS x86_64 mirrorlist"
 check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/pacman.d/cachyos-v3-mirrorlist" "mirror\.cachyos\.org/repo/x86_64_v3" "Staged airootfs CachyOS x86-64-v3 mirrorlist"
 check_file_contains "${CUSTOMIZE_SH}" "F3B607488DB35A47" "customize_airootfs.sh imports and signs CachyOS key (F3B607488DB35A47)"
-check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/skel/.config/sway/config" "Mod4\+space.*(/usr/bin/quickfire|\$menu)" "Staged airootfs includes Sway config"
+check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/skel/.config/sway/config" "Mod4\+space.*(/usr/bin/(quickfire|synapse-hud)|\$menu)" "Staged airootfs includes Sway config"
 check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/skel/.config/waybar/style.css" "#cba6f7" "Staged airootfs includes Waybar style.css"
 
 if grep -Rqs -i "#00a8ff" "${REPO_ROOT}/build/archiso/airootfs/etc"; then
@@ -444,7 +445,7 @@ for module in welcome locale; do
     check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/${module}.conf" '^---$' "Calamares ${module}.conf overrides cachyos-calamares default (GeoIP)"
 done
 if python3 -c 'import yaml' 2>/dev/null; then
-    for yml in "${REPO_ROOT}"/packages/installer/calamares/modules/*.conf "${REPO_ROOT}/packages/installer/calamares/settings.conf"; do
+    for yml in "${REPO_ROOT}"/packages/installer/calamares/modules/*.conf "${REPO_ROOT}"/packages/installer/calamares/modules/*.yaml "${REPO_ROOT}/packages/installer/calamares/settings.conf"; do
         if python3 -c 'import sys, yaml; yaml.safe_load(open(sys.argv[1]))' "${yml}" 2>/dev/null; then
             pass "Valid YAML: ${yml#"${REPO_ROOT}/"}"
         else
@@ -454,6 +455,19 @@ if python3 -c 'import yaml' 2>/dev/null; then
 else
     warn "python3-yaml unavailable; skipping Calamares YAML validation"
 fi
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" '^\s*-\s*netinstall$' "Calamares settings.conf includes netinstall module in show sequence"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/settings.conf" '^\s*-\s*packages$' "Calamares settings.conf includes packages module in exec sequence"
+
+# Productive Apps & Zero-Telemetry Hardening
+check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^chromium$' "packages.x86_64 ships chromium browser"
+check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^galculator$' "packages.x86_64 ships galculator"
+check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^mousepad$' "packages.x86_64 ships mousepad editor"
+check_file_contains "${REPO_ROOT}/build/archiso/packages.x86_64" '^synapse-hud$' "packages.x86_64 ships synapse-hud package"
+check_file_contains "${REPO_ROOT}/overlay/etc/chromium/default-flags" '--disable-telemetry' "Chromium flags disable telemetry"
+check_file_contains "${REPO_ROOT}/overlay/etc/chromium/default-flags" '--disable-sync' "Chromium flags disable cloud sync"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/PKGBUILD" 'synapse-setup' "synapse-hud package includes synapse-setup"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/PKGBUILD" 'synapse-notes' "synapse-hud package includes synapse-notes"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-hud/PKGBUILD" 'synapse-settings' "synapse-hud package includes synapse-settings"
 if [[ "$(readlink "${REPO_ROOT}/build/archiso/airootfs/etc/resolv.conf" 2>/dev/null)" == "/run/systemd/resolve/stub-resolv.conf" ]]; then
     pass "Live resolv.conf links to the systemd-resolved stub (Quad9 DoT)"
 else

@@ -75,14 +75,18 @@ export OBSIDIAN_AI_VAULT="$HOME/Obsidian/AI-Knowledge-Base"
 
 alias syn-sync='synapse sync --once'
 alias syn-doc='synapse doctor'
-alias syn-hud='synapse hud'
+alias syn-hud='synapse-hud'
+alias syn-settings='synapse-settings'
+alias syn-notes='synapse-notes'
 alias syn-vibe='synapse vibe'
 alias syn-mem='synapse mem'
+alias squash='synapse squash'
 
 alias quickfire='quickfire'
 alias qf='quickfire'
 alias qf-theme='quickfire-theme'
-alias agy-palette='quickfire'
+alias agy-palette='synapse-hud'
+alias hud='synapse-hud'
 
 # --- 5. Local LLM (Ollama) Orchestration Helpers ---
 ask-ollama() {

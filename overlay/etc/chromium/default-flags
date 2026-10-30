@@ -1,0 +1,9 @@
+# SynapseOS Zero-Telemetry Hardened Chromium Flags
+--disable-sync
+--disable-telemetry
+--disable-metrics
+--disable-component-update
+--disable-domain-reliability
+--no-default-browser-check
+--enable-features=VaapiVideoDecoder
+--ozone-platform-hint=auto

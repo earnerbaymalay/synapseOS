@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+"""synapse-hud — Native Qt6/QML Command HUD and Quickfire Cockpit for SynapseOS.
+
+Provides an instant-launch, Material You / Catppuccin chamfered HUD with
+mouse-clickable cards and keyboard hotkeys, bound universally to Super+Space.
+"""
+
+import os
+import sys
+import subprocess
+from pathlib import Path
+
+from PyQt6.QtCore import QObject, pyqtSlot, QUrl
+from PyQt6.QtGui import QGuiApplication
+from PyQt6.QtQml import QQmlApplicationEngine
+
+class HudBackend(QObject):
+    def __init__(self, app, parent=None):
+        super().__init__(parent)
+        self.app = app
+
+    @pyqtSlot(str)
+    def launch(self, action: str):
+        if not action:
+            self.app.quit()
+            return
+
+        if action.startswith("AI_PROMPT:"):
+            prompt = action[len("AI_PROMPT:"):].strip()
+            if prompt:
+                # Fire direct prompt to Ollama in a popup Kitty terminal
+                subprocess.Popen([
+                    "kitty", "--title", f"AI Prompt: {prompt}",
+                    "bash", "-c",
+                    f'source ~/.bashrc 2>/dev/null; echo -e "\033[1;35m=== Synapse Local AI Query ===\033[0m"; ollama run qwen2.5-coder "{prompt}"; echo; read -p "Press enter to close..."'
+                ])
+        else:
+            # Execute command detached
+            subprocess.Popen(["bash", "-c", action], start_new_session=True)
+
+        self.app.quit()
+
+    @pyqtSlot()
+    def close(self):
+        self.app.quit()
+
+def get_variant() -> str:
+    theme_file = Path.home() / ".config/synapse/theme"
+    if theme_file.exists():
+        try:
+            return theme_file.read_text().strip()
+        except Exception:
+            pass
+    return "monolith-mauve"
+
+def main():
+    app = QGuiApplication(sys.argv)
+    engine = QQmlApplicationEngine()
+
+    backend = HudBackend(app)
+    engine.rootContext().setContextProperty("backend", backend)
+
+    qml_file = Path(__file__).resolve().parent / "Main.qml"
+    if not qml_file.exists():
+        qml_file = Path("/usr/share/synapse-hud/Main.qml")
+
+    engine.load(QUrl.fromLocalFile(str(qml_file)))
+
+    if not engine.rootObjects():
+        sys.exit(1)
+
+    root = engine.rootObjects()[0]
+    root.setProperty("variant", get_variant())
+    root.launchCommand.connect(backend.launch)
+    root.closeHud.connect(backend.close)
+
+    sys.exit(app.exec())
+
+if __name__ == "__main__":
+    main()

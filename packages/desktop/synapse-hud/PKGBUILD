@@ -1,0 +1,50 @@
+# Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
+pkgname=synapse-hud
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Native Qt6/QML Material You Command HUD, Synapse Settings Control Center, and Brain Notes"
+arch=('any')
+url="https://github.com/earnerbaymalay/synapseOS"
+license=('MIT')
+depends=('python' 'python-pyqt6' 'qt6-declarative' 'qt6-svg' 'qt6-5compat' 'kitty')
+source=(
+  "synapse-hud"
+  "synapse-settings"
+  "synapse-notes"
+  "synapse-setup"
+  "Main.qml"
+  "CommandCategoryCard.qml"
+  "synapse-hud.desktop"
+  "synapse-settings.desktop"
+  "synapse-notes.desktop"
+)
+sha256sums=(
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
+)
+
+package() {
+  # Binaries
+  install -Dm755 "${srcdir}/synapse-hud" "${pkgdir}/usr/bin/synapse-hud"
+  install -Dm755 "${srcdir}/synapse-settings" "${pkgdir}/usr/bin/synapse-settings"
+  install -Dm755 "${srcdir}/synapse-notes" "${pkgdir}/usr/bin/synapse-notes"
+  install -Dm755 "${srcdir}/synapse-setup" "${pkgdir}/usr/bin/synapse-setup"
+  ln -sf "/usr/bin/synapse-hud" "${pkgdir}/usr/bin/synapse-palette"
+
+  # QML Assets
+  install -dm755 "${pkgdir}/usr/share/synapse-hud"
+  install -Dm644 "${srcdir}/Main.qml" "${pkgdir}/usr/share/synapse-hud/Main.qml"
+  install -Dm644 "${srcdir}/CommandCategoryCard.qml" "${pkgdir}/usr/share/synapse-hud/CommandCategoryCard.qml"
+
+  # Desktop Entries
+  install -Dm644 "${srcdir}/synapse-hud.desktop" "${pkgdir}/usr/share/applications/synapse-hud.desktop"
+  install -Dm644 "${srcdir}/synapse-settings.desktop" "${pkgdir}/usr/share/applications/synapse-settings.desktop"
+  install -Dm644 "${srcdir}/synapse-notes.desktop" "${pkgdir}/usr/share/applications/synapse-notes.desktop"
+}

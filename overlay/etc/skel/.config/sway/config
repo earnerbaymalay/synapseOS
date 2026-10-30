@@ -50,8 +50,8 @@ client.background       #11111b
 # --- Keybindings: Terminals & LLM Quickfire HUD ---
 bindsym Mod4+Return exec kitty
 bindsym Mod4+Shift+Return exec foot
-bindsym Mod4+space exec /usr/bin/quickfire
-bindsym Mod4+d exec /usr/bin/quickfire
+bindsym Mod4+space exec /usr/bin/synapse-hud
+bindsym Mod4+d exec /usr/bin/synapse-hud
 bindsym Mod4+Ctrl+t exec synapse-theme --menu
 
 # --- Keybindings: Session & Window Management ---

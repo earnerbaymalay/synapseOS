@@ -1,0 +1,273 @@
+#!/usr/bin/env python3
+"""synapse-notes — Material You / FOSS Markdown Scratchpad for SynapseOS.
+
+Zero telemetry, 100% offline. Automatically synchronizes notes with the
+Synapse AI Brain at `~/AIBrain/notes/scratchpad.md` so that AI coding agents
+and `synapse mem search` have continuous context of user notes.
+"""
+
+import os
+import sys
+import time
+from pathlib import Path
+from PyQt6.QtCore import Qt, QTimer, QRegularExpression
+from PyQt6.QtGui import (
+    QFont, QColor, QSyntaxHighlighter, QTextCharFormat,
+    QKeySequence, QShortcut, QIcon
+)
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+    QTextEdit, QLabel, QPushButton, QFrame, QSizePolicy
+)
+
+ACCENTS = {
+    "mauve": "#cba6f7",
+    "tungsten": "#fab387",
+    "crimson": "#f38ba8",
+    "sapphire": "#74c7ec",
+    "emerald": "#a6e3a1",
+}
+
+def get_accent() -> str:
+    theme_file = Path.home() / ".config/synapse/theme"
+    if theme_file.exists():
+        try:
+            name = theme_file.read_text().strip().split("-")[-1]
+            return ACCENTS.get(name, ACCENTS["mauve"])
+        except Exception:
+            pass
+    return ACCENTS["mauve"]
+
+class MarkdownHighlighter(QSyntaxHighlighter):
+    def __init__(self, parent, accent_color: str):
+        super().__init__(parent)
+        self.rules = []
+
+        # Headers (# Header)
+        fmt_header = QTextCharFormat()
+        fmt_header.setForeground(QColor(accent_color))
+        fmt_header.setFontWeight(QFont.Weight.Bold)
+        self.rules.append((QRegularExpression(r"^#+ .*$"), fmt_header))
+
+        # Code block / backticks (`code`)
+        fmt_code = QTextCharFormat()
+        fmt_code.setForeground(QColor("#a6adc8"))
+        fmt_code.setBackground(QColor("#181825"))
+        self.rules.append((QRegularExpression(r"`[^`]*`"), fmt_code))
+
+        # Bold (**bold**)
+        fmt_bold = QTextCharFormat()
+        fmt_bold.setFontWeight(QFont.Weight.Bold)
+        fmt_bold.setForeground(QColor("#f5e0dc"))
+        self.rules.append((QRegularExpression(r"\*\*[^*]+\*\*"), fmt_bold))
+
+        # Bullet list (- item)
+        fmt_bullet = QTextCharFormat()
+        fmt_bullet.setForeground(QColor(accent_color))
+        fmt_bullet.setFontWeight(QFont.Weight.Bold)
+        self.rules.append((QRegularExpression(r"^\s*[-*+]\s"), fmt_bullet))
+
+    def highlightBlock(self, text: str):
+        for pattern, fmt in self.rules:
+            it = pattern.globalMatch(text)
+            while it.hasNext():
+                match = it.next()
+                self.setFormat(match.capturedStart(), match.capturedLength(), fmt)
+
+class SynapseNotesWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.accent = get_accent()
+        self.setWindowTitle("Synapse Notes")
+        self.resize(780, 560)
+        self.setMinimumSize(480, 360)
+
+        # Brain notes storage path
+        brain_root = os.environ.get("SYNAPSE_BRAIN", str(Path.home() / "AIBrain"))
+        notes_dir = Path(brain_root) / "notes"
+        notes_dir.mkdir(parents=True, exist_ok=True)
+        self.notes_file = notes_dir / "scratchpad.md"
+
+        self.debounce_timer = QTimer(self)
+        self.debounce_timer.setSingleShot(True)
+        self.debounce_timer.timeout.connect(self.save_file)
+
+        self.setup_ui()
+        self.load_file()
+
+        # Keyboard shortcuts
+        QShortcut(QKeySequence("Ctrl+S"), self, self.save_file)
+        QShortcut(QKeySequence("Ctrl+N"), self, self.insert_date_stamp)
+        QShortcut(QKeySequence("Ctrl+Q"), self, self.close)
+        QShortcut(QKeySequence("Escape"), self, self.close)
+
+    def setup_ui(self):
+        root = QWidget(self)
+        self.setCentralWidget(root)
+        layout = QVBoxLayout(root)
+        layout.setContentsMargins(20, 16, 20, 16)
+        layout.setSpacing(12)
+
+        # --- Top Material You Header Bar ---
+        header = QHBoxLayout()
+        header.setSpacing(10)
+
+        title_badge = QLabel("🧠 SYNAPSE NOTES")
+        title_badge.setStyleSheet(f"""
+            font-family: 'JetBrainsMono Nerd Font', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            color: {self.accent};
+            letter-spacing: 1px;
+        """)
+        header.addWidget(title_badge)
+
+        self.status_chip = QLabel("● Saved")
+        self.status_chip.setStyleSheet(f"""
+            background-color: #181825;
+            color: #a6e3a1;
+            font-family: 'JetBrainsMono Nerd Font', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid #313244;
+        """)
+        header.addWidget(self.status_chip)
+
+        header.addStretch()
+
+        self.word_chip = QLabel("0 words")
+        self.word_chip.setStyleSheet("""
+            background-color: #181825;
+            color: #9399b2;
+            font-family: 'JetBrainsMono Nerd Font', monospace;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid #313244;
+        """)
+        header.addWidget(self.word_chip)
+
+        # Material Pill Button: Insert Timestamp Entry
+        btn_entry = QPushButton("+ Date Entry (Ctrl+N)")
+        btn_entry.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_entry.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {self.accent};
+                color: #11111b;
+                font-family: 'JetBrainsMono Nerd Font', monospace;
+                font-size: 11px;
+                font-weight: 700;
+                padding: 6px 14px;
+                border-radius: 14px;
+                border: none;
+            }}
+            QPushButton:hover {{
+                background-color: #ffffff;
+            }}
+        """)
+        btn_entry.clicked.connect(self.insert_date_stamp)
+        header.addWidget(btn_entry)
+
+        layout.addLayout(header)
+
+        # --- Editor Card ---
+        self.editor = QTextEdit(self)
+        self.editor.setFont(QFont("JetBrainsMono Nerd Font", 12))
+        self.editor.setPlaceholderText("Capture ideas, tasks, prompt notes... Auto-synced with Synapse AI Brain.")
+        self.editor.setStyleSheet(f"""
+            QTextEdit {{
+                background-color: #181825;
+                color: #cdd6f4;
+                border: 1px solid #313244;
+                border-radius: 16px;
+                padding: 16px;
+                selection-background-color: {self.accent};
+                selection-color: #11111b;
+                line-height: 1.5;
+            }}
+            QTextEdit:focus {{
+                border: 1px solid {self.accent};
+            }}
+        """)
+        self.editor.textChanged.connect(self.on_text_changed)
+        layout.addWidget(self.editor, 1)
+
+        # Markdown Syntax Highlighting
+        self.highlighter = MarkdownHighlighter(self.editor.document(), self.accent)
+
+        # Material Tonal Window Background
+        self.setStyleSheet("""
+            QMainWindow {
+                background-color: #11111b;
+            }
+        """)
+
+    def on_text_changed(self):
+        text = self.editor.toPlainText()
+        words = len(text.split())
+        self.word_chip.setText(f"{words} words")
+        self.status_chip.setText("○ Editing...")
+        self.status_chip.setStyleSheet("""
+            background-color: #181825;
+            color: #fab387;
+            font-family: 'JetBrainsMono Nerd Font', monospace;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid #fab387;
+        """)
+        self.debounce_timer.start(1200)
+
+    def load_file(self):
+        if self.notes_file.exists():
+            try:
+                content = self.notes_file.read_text(encoding="utf-8")
+                self.editor.setPlainText(content)
+                words = len(content.split())
+                self.word_chip.setText(f"{words} words")
+            except Exception as e:
+                self.editor.setPlainText(f"# Synapse Notes\n\nError reading notes: {e}\n")
+        else:
+            default_text = (
+                "# Synapse Scratchpad\n\n"
+                "- 100% Offline & Zero Telemetry.\n"
+                "- Notes stored in `~/AIBrain/notes/scratchpad.md`.\n"
+                "- Automatically indexed by `synapse sync` and searchable via `synapse mem search`.\n\n"
+            )
+            self.editor.setPlainText(default_text)
+            self.save_file()
+
+    def save_file(self):
+        try:
+            content = self.editor.toPlainText()
+            self.notes_file.write_text(content, encoding="utf-8")
+            self.status_chip.setText("● Saved to Brain")
+            self.status_chip.setStyleSheet("""
+                background-color: #181825;
+                color: #a6e3a1;
+                font-family: 'JetBrainsMono Nerd Font', monospace;
+                font-size: 11px;
+                padding: 4px 10px;
+                border-radius: 12px;
+                border: 1px solid #313244;
+            """)
+        except Exception as e:
+            self.status_chip.setText("⚠ Save Failed")
+
+    def insert_date_stamp(self):
+        stamp = time.strftime("\n## %Y-%m-%d · %H:%M\n- ")
+        cursor = self.editor.textCursor()
+        cursor.insertText(stamp)
+        self.editor.setTextCursor(cursor)
+        self.editor.setFocus()
+
+def main():
+    app = QApplication(sys.argv)
+    window = SynapseNotesWindow()
+    window.show()
+    sys.exit(app.exec())
+
+if __name__ == "__main__":
+    main()

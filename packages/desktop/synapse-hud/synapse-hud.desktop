@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Synapse Command HUD
+Comment=Unified AI Command Center, Local LLM Launcher & Quickfire Cockpit
+Exec=/usr/bin/synapse-hud
+Icon=utilities-terminal
+Terminal=false
+Type=Application
+Categories=System;Utility;
+Keywords=quickfire;hud;synapse;ai;palette;
