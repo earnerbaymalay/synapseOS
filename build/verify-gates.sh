@@ -71,6 +71,7 @@ EXPECTED_PKGBUILDS=(
     "${REPO_ROOT}/packages/desktop/llm-quickfire-panel/PKGBUILD"
     "${REPO_ROOT}/packages/desktop/synapse-themes/PKGBUILD"
     "${REPO_ROOT}/packages/desktop/synapse-greeter/PKGBUILD"
+    "${REPO_ROOT}/packages/desktop/synapse-plymouth/PKGBUILD"
 )
 
 for pkgbuild in "${EXPECTED_PKGBUILDS[@]}"; do
@@ -297,6 +298,8 @@ REQUIRED_PKGS=(
     "llm-quickfire-panel"
     "synapse-themes"
     "synapse-greeter"
+    "synapse-plymouth"
+    "plymouth"
 )
 
 for pkg in "${REQUIRED_PKGS[@]}"; do
@@ -360,7 +363,7 @@ if [[ -d "${REPO_ROOT}/out/repo" ]]; then
         fi
     done
 
-    for built_pkg in "synapse-core" "llm-quickfire-panel" "synapse-themes" "synapse-greeter"; do
+    for built_pkg in "synapse-core" "llm-quickfire-panel" "synapse-themes" "synapse-greeter" "synapse-plymouth"; do
         if compgen -G "${REPO_ROOT}/out/repo/${built_pkg}-*.pkg.tar.*" >/dev/null; then
             pass "Compiled package archive in out/repo/: ${built_pkg}"
         else
@@ -461,6 +464,24 @@ check_file_lacks "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh
 check_file_lacks "${REPO_ROOT}/packages/core/synapse-core/synapse.service" 'ExecStart=.*--config' "synapse.service passes only flags 'synapse serve' accepts"
 check_file_lacks "${REPO_ROOT}/packages/core/synapse-core/synapse.service" 'network-online\.target' "synapse.service does not wait on network-online (localhost gateway)"
 check_file_contains "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh" 'systemctl disable systemd-networkd\.service' "systemd-networkd disabled (NetworkManager owns networking)"
+
+# Boot splash (Plymouth, Twin Hook)
+PLY_DIR="${REPO_ROOT}/packages/desktop/synapse-plymouth"
+check_file_contains "${REPO_ROOT}/build/archiso/airootfs/etc/mkinitcpio.conf.d/archiso.conf" '^HOOKS=\(.* kms plymouth .*\)$' "Live initramfs runs the plymouth hook"
+check_file_contains "${REPO_ROOT}/overlay/etc/plymouth/plymouthd.conf" '^Theme=synapseos-mauve$' "Plymouth defaults to synapseos-mauve"
+check_file_contains "${REPO_ROOT}/build/archiso/efiboot/loader/entries/01-synapseos-x86_64-linux.conf" '^options .* splash' "Live boot entry passes splash"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/bootloader.conf" '"splash"' "Installed systems boot with splash"
+check_file_contains "${PLY_DIR}/synapseos.script.in" 'Plymouth\.SetDisplayPasswordFunction' "Splash handles the LUKS passphrase prompt"
+check_file_contains "${PLY_DIR}/synapseos.script.in" 'Plymouth\.SetRefreshFunction' "Splash script drives frame playback"
+check_file_contains "${REPO_ROOT}/packages/desktop/synapse-themes/synapse-theme" 'plymouth-set-default-theme -R' "synapse-theme can sync the boot splash accent"
+for accent in mauve tungsten crimson sapphire emerald; do
+    check_file_contains "${PLY_DIR}/PKGBUILD" "'${accent}:[0-9a-f]{6}:" "Boot splash renders the ${accent} accent"
+done
+if python3 -m py_compile "${PLY_DIR}/render_frames.py" 2>/dev/null; then
+    pass "render_frames.py compiles"
+else
+    fail "render_frames.py compiles"
+fi
 
 # V4 theme pack & screensaver
 THEMES_DIR="${REPO_ROOT}/packages/desktop/synapse-themes"

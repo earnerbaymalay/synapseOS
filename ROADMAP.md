@@ -45,7 +45,8 @@
 - [x] Wallpaper set: 3 designs x accent variants (14), Basalt Tower SYNAPSE-branded; theme ids `<design>-<accent>`.
 - [x] `synapse-greeter`: `synapseos` Qt6 SDDM theme (right-aligned clock + system readout, chamfered panel with animated accent trails); `synapse-theme --sync-greeter`.
 - [x] Remove the PlayStation 2 boot animation and greeter (`synapse-theme-ps2`).
-- [ ] Boot animation: laser-engraved geometric S (Zorin-style), replacing PS2.
+- [x] Boot splash: `synapse-plymouth` — laser-engraved Twin Hook S (Plymouth script theme, frames rendered per accent at build), LUKS prompt, `synapse-theme --sync-boot`.
+- [ ] Verify the splash on real hardware / QEMU (needs a fresh ISO build).
 - [ ] First-boot onboarding wizard (theme, privacy defaults, local model pull, HUD intro).
 - [ ] Native 4K re-renders of the wallpapers.
 - [ ] Stage C: full `mkarchiso` build + QEMU/KVM boot verification; Stage D: `v0.1.0-alpha` release.

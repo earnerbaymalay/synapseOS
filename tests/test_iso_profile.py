@@ -77,6 +77,22 @@ class TestSynapseOSGates(unittest.TestCase):
         self.assertIn("corner-radius", picom_text)
         self.assertNotIn("PS2", picom_text)
 
+    def test_boot_splash(self) -> None:
+        """Validate the Plymouth Twin Hook splash package and its boot wiring."""
+        ply = REPO_ROOT / "packages" / "desktop" / "synapse-plymouth"
+        script = (ply / "synapseos.script.in").read_text(encoding="utf-8")
+        for hook in ("SetRefreshFunction", "SetDisplayPasswordFunction", "SetDisplayNormalFunction", "SetQuitFunction"):
+            self.assertIn(f"Plymouth.{hook}", script)
+        pkgbuild = (ply / "PKGBUILD").read_text(encoding="utf-8")
+        for accent in ("mauve", "tungsten", "crimson", "sapphire", "emerald"):
+            self.assertIn(f"'{accent}:", pkgbuild)
+        hooks = (REPO_ROOT / "build" / "archiso" / "airootfs" / "etc" / "mkinitcpio.conf.d" / "archiso.conf").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn(" kms plymouth ", hooks)
+        conf = (REPO_ROOT / "overlay" / "etc" / "plymouth" / "plymouthd.conf").read_text(encoding="utf-8")
+        self.assertIn("Theme=synapseos-mauve", conf)
+
     def test_sway_and_waybar_session_configs(self) -> None:
         """Validate Sway and Waybar dual-session configs and package list."""
         pkgs_text = (REPO_ROOT / "build" / "archiso" / "packages.x86_64").read_text(

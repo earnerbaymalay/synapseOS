@@ -1,0 +1,55 @@
+# Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
+pkgname=synapse-plymouth
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="SynapseOS Plymouth boot splash: laser-engraved Twin Hook S, one theme per accent"
+arch=('any')
+url="https://github.com/earnerbaymalay/synapseOS"
+license=('MIT')
+depends=('plymouth')
+makedepends=('python' 'python-pillow' 'python-numpy')
+source=('render_frames.py' 'synapseos.script.in')
+sha256sums=('6a459d12b54648853885cae9042e167c80139109531010a2a394f30ba841e982'
+            '56bb526a637444119df2f6259ec2018e76b8c5024b5c577766163a83f64851d5')
+
+_accents=(
+  'mauve:cba6f7:Mauve'
+  'tungsten:fab387:Tungsten'
+  'crimson:f38ba8:Crimson'
+  'sapphire:74c7ec:Sapphire'
+  'emerald:a6e3a1:Emerald'
+)
+
+build() {
+  local entry name hex
+  for entry in "${_accents[@]}"; do
+    IFS=: read -r name hex _ <<< "$entry"
+    python3 render_frames.py "themes/synapseos-$name" "$hex"
+  done
+}
+
+package() {
+  local entry name hex label dir frames
+  for entry in "${_accents[@]}"; do
+    IFS=: read -r name hex label <<< "$entry"
+    dir="$pkgdir/usr/share/plymouth/themes/synapseos-$name"
+    install -dm755 "$dir"
+    install -m644 "themes/synapseos-$name"/*.png "$dir/"
+    frames=$(find "themes/synapseos-$name" -name 'frame-*.png' | wc -l)
+    sed -e "s/@FRAMES@/$frames/" \
+        -e "s/@ACCENT_R@/$(awk -v v=$(( 16#${hex:0:2} )) 'BEGIN{printf "%.3f", v/255}')/" \
+        -e "s/@ACCENT_G@/$(awk -v v=$(( 16#${hex:2:2} )) 'BEGIN{printf "%.3f", v/255}')/" \
+        -e "s/@ACCENT_B@/$(awk -v v=$(( 16#${hex:4:2} )) 'BEGIN{printf "%.3f", v/255}')/" \
+        synapseos.script.in > "$dir/synapseos.script"
+    cat > "$dir/synapseos-$name.plymouth" << PLY
+[Plymouth Theme]
+Name=SynapseOS ($label)
+Description=Laser-engraved Twin Hook S — SynapseOS boot splash, $label accent
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/synapseos-$name
+ScriptFile=/usr/share/plymouth/themes/synapseos-$name/synapseos.script
+PLY
+  done
+}

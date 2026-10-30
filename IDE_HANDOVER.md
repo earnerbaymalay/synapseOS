@@ -39,7 +39,7 @@ Now that the workspace is open in **Antigravity IDE**, the IDE agent (running **
    - Execute `sudo ./build/build-iso.sh` to produce `out/synapseos-YYYY.MM.DD-x86_64.iso`.
    - Boot the ISO in QEMU/KVM (`SynapseOS: Boot ISO in QEMU/KVM` task in `.vscode/tasks.json`) to verify:
      * UEFI `systemd-boot` splash $\rightarrow$ `linux-cachyos` kernel boot
-     * `synapseos` SDDM greeter $\rightarrow$ XFCE 4.20 desktop handoff (boot animation: laser-engraved S, in design)
+     * `synapseos` SDDM greeter $\rightarrow$ XFCE 4.20 desktop handoff (boot splash: `synapse-plymouth` Twin Hook laser engrave)
      * `quickfire` HUD auto-launch, `synapse.service` health, and Calamares installer launch.
 4. **Stage D — Release Tagging (`v0.1.0-alpha`)**:
    - Generate `out/SHA256SUMS`, commit any build refinements, and tag `v0.1.0-alpha` to trigger `.github/workflows/build-iso.yml`.

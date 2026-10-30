@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # synapse-theme — SynapseOS system theme switcher (wallpaper + Kitty + Rofi palette)
-# Usage: synapse-theme [THEME] | --menu | --restore | --list | --register-shortcut | --sync-greeter [THEME]
+# Usage: synapse-theme [THEME] | --menu | --restore | --list | --register-shortcut | --sync-greeter [THEME] | --sync-boot [THEME]
 set -euo pipefail
 
 WALLPAPER_DIR="/usr/share/backgrounds/synapseos"
@@ -160,6 +160,14 @@ sync_greeter() {
     printf '[General]\nvariant=%s\n' "$id" | pkexec tee "$GREETER_CONF" >/dev/null
 }
 
+# Boot splash themes are per accent (synapseos-<accent>); switching rebuilds the
+# initramfs so the new splash is used from the next boot.
+sync_boot() {
+    local id="$1"
+    lookup "$id" >/dev/null || { echo "synapse-theme: unknown theme '$id' (see --list)" >&2; return 1; }
+    pkexec plymouth-set-default-theme -R "synapseos-${id##*-}"
+}
+
 register_shortcut() {
     command -v xfconf-query >/dev/null 2>&1 || return 0
     local prop="/commands/custom/${XFCE_SHORTCUT}"
@@ -197,6 +205,10 @@ case "${1:---menu}" in
     --sync-greeter)
         current="$(cat "$STATE_FILE" 2>/dev/null || true)"
         sync_greeter "${2:-${current:-$DEFAULT_THEME}}"
+        ;;
+    --sync-boot)
+        current="$(cat "$STATE_FILE" 2>/dev/null || true)"
+        sync_boot "${2:-${current:-$DEFAULT_THEME}}"
         ;;
     --list)
         for entry in "${THEMES[@]}"; do

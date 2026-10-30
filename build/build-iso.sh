@@ -151,6 +151,7 @@ build_local_packages() {
         "${REPO_ROOT}/packages/desktop/llm-quickfire-panel"
         "${REPO_ROOT}/packages/desktop/synapse-themes"
         "${REPO_ROOT}/packages/desktop/synapse-greeter"
+        "${REPO_ROOT}/packages/desktop/synapse-plymouth"
     )
 
     for pkg_dir in "${pkg_dirs[@]}"; do
@@ -159,10 +160,11 @@ build_local_packages() {
             (
                 cd "${pkg_dir}"
                 local makepkg_flags=("-sf" "--noconfirm")
+                # shellcheck source=/dev/null disable=SC2154  # PKGBUILD is per package; makedepends comes from it
                 if [[ -d "${pkg_dir}/src" ]] && [[ -n "$(ls -A "${pkg_dir}/src" 2>/dev/null)" ]]; then
                     makepkg_flags=("-ef" "--noconfirm" "--nodeps")
-                elif ! grep -q '^makedepends=' PKGBUILD; then
-                    # Nothing to compile: don't install runtime deps on the build host
+                elif [[ -z "$( (source ./PKGBUILD; ((${#makedepends[@]})) && pacman -T "${makedepends[@]}") || true)" ]]; then
+                    # Build tools already present: never install runtime deps on the build host
                     makepkg_flags=("-f" "--noconfirm" "--nodeps")
                 fi
                 if [[ "${EUID}" -eq 0 ]]; then

@@ -19,6 +19,7 @@ amd-ucode
 linux-firmware
 mkinitcpio
 mkinitcpio-archiso
+plymouth
 nvme-cli
 os-prober
 parted
@@ -156,3 +157,4 @@ synapse-core
 llm-quickfire-panel
 synapse-themes
 synapse-greeter
+synapse-plymouth

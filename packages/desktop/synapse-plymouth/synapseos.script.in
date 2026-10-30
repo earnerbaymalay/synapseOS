@@ -1,0 +1,113 @@
+# SynapseOS — "Twin Hook" laser-engrave boot splash (Plymouth script plugin)
+# Frames are pre-rendered per accent by render_frames.py; this script only plays
+# them one at a time (low RAM in the initramfs), then holds on the final emblem
+# with a breathing glow. Handles the LUKS passphrase prompt and boot messages.
+
+Window.SetBackgroundTopColor(0.035, 0.035, 0.051);
+Window.SetBackgroundBottomColor(0.035, 0.035, 0.051);
+
+FRAMES = @FRAMES@;
+ACCENT_R = @ACCENT_R@;
+ACCENT_G = @ACCENT_G@;
+ACCENT_B = @ACCENT_B@;
+
+# Frames are authored for a 1080p screen; scale to the actual height.
+scale = Window.GetHeight() / 1080;
+if (scale < 0.45) scale = 0.45;
+fw = Math.Int(600 * scale);
+fh = Math.Int(560 * scale);
+fx = Window.GetX() + Math.Int((Window.GetWidth() - fw) / 2);
+fy = Window.GetY() + Math.Int((Window.GetHeight() - fh) / 2);
+
+fun load(name) {
+    img = Image(name);
+    if (scale != 1) img = img.Scale(fw, fh);
+    return img;
+}
+
+fun frame_name(n) {
+    if (n < 10) return "frame-00" + n + ".png";
+    if (n < 100) return "frame-0" + n + ".png";
+    return "frame-" + n + ".png";
+}
+
+anim = Sprite();
+anim.SetPosition(fx, fy, 1);
+glow = Sprite();
+glow.SetPosition(fx, fy, 2);
+glow.SetOpacity(0);
+
+global.tick = 0;
+global.shown = -1;
+global.held = 0;
+global.hold_start = 0;
+
+# Plymouth calls this at 50 Hz; frames advance every second call (25 fps).
+fun refresh_callback() {
+    global.tick = global.tick + 1;
+    n = Math.Int(global.tick / 2);
+    if (n < FRAMES) {
+        if (n != global.shown) {
+            anim.SetImage(load(frame_name(n)));
+            global.shown = n;
+        }
+    } else {
+        if (global.held == 0) {
+            anim.SetImage(load("final.png"));
+            glow.SetImage(load("glow.png"));
+            global.held = 1;
+            global.hold_start = global.tick;
+        }
+        # ~2.4 s breath
+        glow.SetOpacity(0.25 + 0.25 * Math.Sin((global.tick - global.hold_start) / 50 * 2.6));
+    }
+}
+Plymouth.SetRefreshFunction(refresh_callback);
+
+# --- LUKS passphrase prompt --------------------------------------------------
+prompt_sprite = Sprite();
+bullet_sprite = Sprite();
+prompt_sprite.SetOpacity(0);
+bullet_sprite.SetOpacity(0);
+
+fun display_password_callback(prompt, bullets) {
+    p = Image.Text(prompt, 0.80, 0.84, 0.96);
+    prompt_sprite.SetImage(p);
+    prompt_sprite.SetPosition(Window.GetX() + Math.Int((Window.GetWidth() - p.GetWidth()) / 2), fy + fh + Math.Int(18 * scale), 10);
+    prompt_sprite.SetOpacity(1);
+
+    dots = "";
+    i = 0;
+    while (i < bullets) {
+        dots = dots + "•";
+        i = i + 1;
+    }
+    if (dots == "") dots = "_";
+    b = Image.Text(dots, ACCENT_R, ACCENT_G, ACCENT_B);
+    bullet_sprite.SetImage(b);
+    bullet_sprite.SetPosition(Window.GetX() + Math.Int((Window.GetWidth() - b.GetWidth()) / 2), fy + fh + Math.Int(18 * scale) + p.GetHeight() + 8, 10);
+    bullet_sprite.SetOpacity(1);
+}
+Plymouth.SetDisplayPasswordFunction(display_password_callback);
+
+fun display_normal_callback() {
+    prompt_sprite.SetOpacity(0);
+    bullet_sprite.SetOpacity(0);
+}
+Plymouth.SetDisplayNormalFunction(display_normal_callback);
+
+# --- Boot messages (e.g. fsck), bottom centre ----------------------------------
+message_sprite = Sprite();
+fun message_callback(text) {
+    m = Image.Text(text, 0.58, 0.60, 0.70);
+    message_sprite.SetImage(m);
+    message_sprite.SetPosition(Window.GetX() + Math.Int((Window.GetWidth() - m.GetWidth()) / 2), Window.GetY() + Window.GetHeight() - m.GetHeight() - Math.Int(40 * scale), 10);
+}
+Plymouth.SetMessageFunction(message_callback);
+
+# Leave the finished emblem on screen for the hand-off to the login screen.
+fun quit_callback() {
+    anim.SetImage(load("final.png"));
+    glow.SetOpacity(0);
+}
+Plymouth.SetQuitFunction(quit_callback);
