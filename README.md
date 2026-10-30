@@ -1,19 +1,20 @@
 # SynapseOS
 
+<p align="center">
+  <img src="docs/assets/synapseos-banner.png" alt="SynapseOS Banner" width="100%"/>
+</p>
+
 > **An AI-Native Rolling Linux Distribution**  
 > *Engineered for High-Throughput Agentic Development, Cyber Resilience, and Kernel Performance.*
 >
 > *"System aims for minimal if not 0 telemetry and prioritises anonymisation without degradation of service."*
 
 ```
-   █████████  ███    ███  ███   ███  █████████     ████████   ░██████    ███████
-  ███░░░░░███░███   ░░███░███  ░███ ░███░░░░░███  ███░░░░███ ░██░░░░███ ░██░░░░███
- ░███    ░░░ ░███    ░███░███  ░███ ░███    ░███ ░███   ░░░  ░██    ░███░██    ░░░ 
- ░░█████████ ░███    ░███░█████████ ░█████████   ░░████████  ░██    ░███░░█████████
-  ░░░░░░░░███░░███   ███ ░░░░░░░███ ░███░░░░░      ░░░░░░███ ░██    ░███ ░░░░░░░░███
-  ███    ░███ ░░░█████░    ░███ ░███ ░███        ███   ░███  ░██░░░░███  ███    ░███
- ░░█████████    ░░███      ░░██████  █████      ░░████████   ░████████  ░░█████████
-  ░░░░░░░░░      ░░░        ░░░░░░  ░░░░░        ░░░░░░░░    ░░░░░░░░    ░░░░░░░░░ 
+ ░████  ██  ██ ███ ██  ░███  █████   ░████  ██████        ░████░   ░████ 
+░██░░░  ░██░██ ░███░█ ░██░██ ░██░██ ░██░░░  ░██░░░       ░██░░██░ ░██░░░ 
+░░███░   ░███░ ░██░██ ░█████ ░████░ ░░███░  ░████        ░██  ██░ ░░███░ 
+  ░░██░   ░██░ ░██░██ ░██░██ ░██░░░   ░░██░ ░██░░░       ░██░░██░   ░░██░
+░████░    ░██░ ░██ ░█ ░██ ░█ ░██    ░████░  ░█████        ░████░  ░████░ 
 ```
 
 SynapseOS merges four powerful principles into one seamless operating system:
