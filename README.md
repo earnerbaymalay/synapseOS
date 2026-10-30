@@ -2,6 +2,8 @@
 
 > **An AI-Native Rolling Linux Distribution**  
 > *Engineered for High-Throughput Agentic Development, Cyber Resilience, and Kernel Performance.*
+>
+> *"System aims for minimal if not 0 telemetry and prioritises anonymisation without degradation of service."*
 
 ```
    █████████  ███    ███  ███   ███  █████████     ████████   ░██████    ███████
@@ -20,6 +22,8 @@ SynapseOS merges four powerful principles into one seamless operating system:
 2. **EndeavourOS Foundation**: Clean, unbloated upstream Arch Linux rolling foundation, transparent packaging, Calamares installer with Btrfs `@` subvolume layouts, and native systemd management.
 3. **Omarchy-style Cyberdeck Aesthetic**: Monospace terminal-first environment, the `synapseos` SDDM greeter (clock + system readout, animated accent-trail panel), 14 SynapseOS wallpaper/theme variants, Picom `dual_kawase` glass blur, Catppuccin Mocha accents, and instant Super-key command palettes (`llm-quickfire-panel`).
 4. **Synapse AI Core**: Deeply built into the core OS package (`synapse-core`), providing a `127.0.0.1:8000` runtime proxy, bidirectional context firewall, 3-layer persistent agent memory, and local Ollama LLM routing out of the box.
+5. **Prime Directive (Security, Anonymity & Zero Telemetry)**: Full MAC address randomization on scanning and per-session links, RFC 4941 IPv6 privacy extensions, encrypted Quad9 DNS-over-TLS (`9.9.9.9:853`), hardened zero-telemetry Chromium, and incoming-drop firewalld posture:
+   > *"System aims for minimal if not 0 telemetry and prioritises anonymisation without degradation of service."*
 
 ---
 
