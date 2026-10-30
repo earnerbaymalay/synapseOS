@@ -1,7 +1,7 @@
 # Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
 pkgname=synapse-plymouth
 pkgver=0.1.0
-pkgrel=1
+pkgrel=2
 pkgdesc="SynapseOS Plymouth boot splash: laser-engraved Twin Hook S, one theme per accent"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"
@@ -9,8 +9,8 @@ license=('MIT')
 depends=('plymouth')
 makedepends=('python' 'python-pillow' 'python-numpy')
 source=('render_frames.py' 'synapseos.script.in')
-sha256sums=('6a459d12b54648853885cae9042e167c80139109531010a2a394f30ba841e982'
-            '56bb526a637444119df2f6259ec2018e76b8c5024b5c577766163a83f64851d5')
+sha256sums=('28f48a48a6031503c3d212ea21b8db22f877b68f20456ec2e13142372156eee8'
+            'c8e7a7c801aa63df32565f8454d31a9ad6f225477507301daaa7f6cf6e81fb08')
 
 _accents=(
   'mauve:cba6f7:Mauve'

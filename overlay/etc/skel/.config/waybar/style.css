@@ -41,12 +41,19 @@ window#waybar {
 
 #workspaces button.urgent {
     background-color: #1e1e2e;
-    color: #cba6f7;
+    color: #f38ba8;
 }
 
 #mode,
 #clock,
+#custom-menu,
+#custom-installer,
+#custom-terminal,
+#custom-ai,
 #custom-synapse,
+#custom-stealth,
+#custom-help,
+#custom-power,
 #cpu,
 #memory,
 #network,
@@ -60,6 +67,102 @@ window#waybar {
     border: 1px solid #cba6f7;
 }
 
+/* --- Synapse Cockpit Menu Button --- */
+#custom-menu {
+    background-color: #11111b;
+    color: #cba6f7;
+    font-weight: bold;
+    border: 1px solid #cba6f7;
+    padding: 0 12px;
+}
+
+#custom-menu:hover {
+    background-color: #cba6f7;
+    color: #11111b;
+}
+
+/* --- Calamares Installer Action Banner (Live Session) --- */
+#custom-installer {
+    background-color: #cba6f7;
+    color: #11111b;
+    font-weight: bold;
+    border: 1px solid #b4befe;
+    padding: 0 12px;
+    margin: 2px 4px;
+}
+
+#custom-installer:hover {
+    background-color: #b4befe;
+    color: #11111b;
+}
+
+/* --- Quick Launch Term & AI --- */
+#custom-terminal {
+    background-color: #1e1e2e;
+    color: #cdd6f4;
+}
+
+#custom-terminal:hover {
+    background-color: #313244;
+    color: #cba6f7;
+}
+
+#custom-ai {
+    background-color: #1e1e2e;
+    color: #fab387;
+    border-color: #fab387;
+}
+
+#custom-ai:hover {
+    background-color: #fab387;
+    color: #11111b;
+}
+
+/* --- Stealth & Security Shield --- */
+#custom-stealth {
+    background-color: #11111b;
+    color: #a6e3a1;
+    border-color: #a6e3a1;
+    font-weight: bold;
+}
+
+#custom-stealth.warning {
+    color: #fab387;
+    border-color: #fab387;
+}
+
+#custom-stealth.critical {
+    color: #f38ba8;
+    border-color: #f38ba8;
+}
+
+/* --- Help Cheat Sheet Button --- */
+#custom-help {
+    background-color: #1e1e2e;
+    color: #74c7ec;
+    border-color: #74c7ec;
+}
+
+#custom-help:hover {
+    background-color: #74c7ec;
+    color: #11111b;
+}
+
+/* --- Session Power Button --- */
+#custom-power {
+    background-color: #11111b;
+    color: #f38ba8;
+    border-color: #f38ba8;
+    font-weight: bold;
+    padding: 0 12px;
+}
+
+#custom-power:hover {
+    background-color: #f38ba8;
+    color: #11111b;
+}
+
+/* --- Synapse Daemon Health Status --- */
 #custom-synapse {
     background-color: #11111b;
     color: #cba6f7;

@@ -124,6 +124,20 @@ class TestSynapseOSGates(unittest.TestCase):
         self.assertIn("Mod4+space", sway_conf)
         self.assertIn("Mod4+d", sway_conf)
         self.assertIn("Mod4+Return", sway_conf)
+        self.assertIn("Mod4+i", sway_conf)
+        self.assertIn("Mod4+slash", sway_conf)
+        self.assertIn("calamares -d", sway_conf)
+        self.assertIn("swaybg -i", sway_conf)
+        for rule in (
+            "synapse-hud",
+            "quickfire",
+            "calamares",
+            "pavucontrol",
+            "nm-connection-editor",
+            "synapse-welcome",
+            "synapse-screensaver",
+        ):
+            self.assertIn(rule, sway_conf)
 
         waybar_conf = (
             REPO_ROOT / "overlay" / "etc" / "skel" / ".config" / "waybar" / "config.jsonc"
@@ -131,6 +145,16 @@ class TestSynapseOSGates(unittest.TestCase):
         self.assertNotIn("#00a8ff", waybar_conf.lower())
         self.assertIn("sway/workspaces", waybar_conf)
         self.assertIn("/usr/bin/quickfire", waybar_conf)
+        for widget in (
+            "custom/menu",
+            "custom/installer",
+            "custom/terminal",
+            "custom/ai",
+            "custom/stealth",
+            "custom/help",
+            "custom/power",
+        ):
+            self.assertIn(widget, waybar_conf)
 
         waybar_style = (
             REPO_ROOT / "overlay" / "etc" / "skel" / ".config" / "waybar" / "style.css"
@@ -138,6 +162,16 @@ class TestSynapseOSGates(unittest.TestCase):
         self.assertNotIn("#00a8ff", waybar_style.lower())
         for color in ("#11111b", "#1e1e2e", "#cba6f7", "#cdd6f4"):
             self.assertIn(color, waybar_style.lower())
+        for cls in (
+            "#custom-menu",
+            "#custom-installer",
+            "#custom-terminal",
+            "#custom-ai",
+            "#custom-stealth",
+            "#custom-help",
+            "#custom-power",
+        ):
+            self.assertIn(cls, waybar_style)
 
 
 if __name__ == "__main__":

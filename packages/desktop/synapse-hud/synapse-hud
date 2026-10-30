@@ -55,6 +55,7 @@ def get_variant() -> str:
 
 def main():
     app = QGuiApplication(sys.argv)
+    app.setDesktopFileName("synapse-hud")
     engine = QQmlApplicationEngine()
 
     backend = HudBackend(app)

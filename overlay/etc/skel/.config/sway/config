@@ -12,7 +12,7 @@ set $up k
 set $right l
 set $term kitty
 set $term_alt foot
-set $menu /usr/bin/quickfire
+set $menu /usr/bin/synapse-hud
 
 # --- Palette Tokens (Catppuccin Mocha + Liquid Chrome + Obsidian Crust) ---
 set $crust    #11111b
@@ -30,6 +30,8 @@ smart_borders on
 
 # --- Output & Idle Management ---
 output * bg #11111b solid_color
+output * bg /usr/share/backgrounds/synapseos/synapse-monolith-mauve.jpg fill #11111b
+exec swaybg -i /usr/share/backgrounds/synapseos/monolith-mauve.png -m fill 2>/dev/null || swaybg -i /usr/share/backgrounds/synapseos/synapse-monolith-mauve.jpg -m fill 2>/dev/null || true
 exec synapse-theme --restore
 
 # Screensaver is not a lock: 5 min -> geodesic torus, 10 min -> displays off
@@ -47,12 +49,17 @@ client.urgent           #cba6f7  #1e1e2e  #cdd6f4  #cba6f7   #cba6f7
 client.placeholder      #11111b  #11111b  #cdd6f4  #11111b   #11111b
 client.background       #11111b
 
-# --- Keybindings: Terminals & LLM Quickfire HUD ---
+# --- Keybindings: Terminals & Cyberdeck HUD ---
 bindsym Mod4+Return exec kitty
 bindsym Mod4+Shift+Return exec foot
 bindsym Mod4+space exec /usr/bin/synapse-hud
 bindsym Mod4+d exec /usr/bin/synapse-hud
 bindsym Mod4+Ctrl+t exec synapse-theme --menu
+
+# --- Keybindings: System Installer & Cheatsheet ---
+bindsym Mod4+i exec calamares -d
+bindsym Mod4+slash exec /usr/bin/synapse-shortcuts
+bindsym Mod4+question exec /usr/bin/synapse-shortcuts
 
 # --- Keybindings: Session & Window Management ---
 bindsym Mod4+Shift+q kill
@@ -134,14 +141,38 @@ mode "resize" {
 }
 bindsym $mod+r mode "resize"
 
-# --- Screensaver Window ---
+# --- Comprehensive Floating Window Rules ---
 for_window [app_id="synapse-screensaver"] fullscreen enable
+for_window [app_id="(?i)synapse-hud"] floating enable, border pixel 0
+for_window [class="(?i)synapse-hud"] floating enable, border pixel 0
+for_window [app_id="(?i)synapse-welcome"] floating enable, move position center
+for_window [class="(?i)synapse-welcome"] floating enable, move position center
+for_window [app_id="(?i)synapse-settings"] floating enable, move position center
+for_window [app_id="(?i)synapse-notes"] floating enable, move position center
+for_window [app_id="synapse-shortcuts"] floating enable, resize set 860 620, move position center
+for_window [title=".*Keybindings Cheat Sheet.*"] floating enable, resize set 860 620, move position center
+for_window [app_id="(?i)quickfire"] floating enable, border pixel 2
+for_window [class="(?i)quickfire"] floating enable, border pixel 2
+for_window [app_id="(?i)calamares"] floating enable, move position center
+for_window [class="(?i)calamares"] floating enable, move position center
+for_window [app_id="(?i)pavucontrol"] floating enable, move position center
+for_window [class="(?i)pavucontrol"] floating enable, move position center
+for_window [app_id="(?i)nm-connection-editor"] floating enable, move position center
+for_window [class="(?i)nm-connection-editor"] floating enable, move position center
+for_window [window_role="pop-up"] floating enable
+for_window [window_role="bubble"] floating enable
+for_window [window_role="dialog"] floating enable
+for_window [window_type="dialog"] floating enable
 
-# --- Waybar Status Bar & Quickfire Autostart ---
+# --- Waybar Status Bar ---
 bar {
     swaybar_command waybar
 }
 
+# --- Autostart Services & Onboarding ---
 exec /usr/bin/quickfire --autostart
+
+# In live sessions or initial login, autostart synapse-welcome centered so user has an immediate cockpit
+exec [ -f /etc/sudoers.d/00-synapse-live ] || [ -x /usr/bin/calamares ] || [ ! -f ~/.config/synapse/.onboarding_complete ] && /usr/bin/synapse-welcome --autostart
 
 include /etc/sway/config.d/*

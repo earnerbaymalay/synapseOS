@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# synapse-power — Cyberdeck session and power management menu
+set -euo pipefail
+
+options="󰐥 Poweroff\n󰜉 Reboot\n󰗽 Logout\n󰤄 Suspend\n󰌾 Screensaver"
+
+if command -v rofi >/dev/null 2>&1; then
+    chosen="$(printf "%b" "$options" | rofi -dmenu -i -p "󰚩 Session" -lines 5)"
+else
+    chosen="$(printf "%b" "$options" | head -n 1)"
+fi
+
+case "${chosen:-}" in
+    *Poweroff*)
+        systemctl poweroff
+        ;;
+    *Reboot*)
+        systemctl reboot
+        ;;
+    *Logout*)
+        if [[ -n "${SWAYSOCK:-}" ]] && command -v swaymsg >/dev/null 2>&1; then
+            swaymsg exit
+        elif command -v xfce4-session-logout >/dev/null 2>&1; then
+            xfce4-session-logout --logout --fast
+        else
+            kill -9 -1
+        fi
+        ;;
+    *Suspend*)
+        systemctl suspend
+        ;;
+    *Screensaver*)
+        if command -v synapse-screensaver >/dev/null 2>&1; then
+            synapse-screensaver --launch
+        fi
+        ;;
+    *)
+        exit 0
+        ;;
+esac

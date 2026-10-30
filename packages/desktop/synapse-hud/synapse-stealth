@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# synapse-stealth — Waybar status generator for Prime Directive Stealth Shield
+set -euo pipefail
+
+nm_conf="/etc/NetworkManager/conf.d/00-synapseos-stealth.conf"
+dot_conf="/etc/systemd/resolved.conf.d/quad9-dot.conf"
+
+mac_ok=0
+dot_ok=0
+
+if [[ -f "$nm_conf" ]] && grep -q "wifi.scan-rand-mac-address=yes" "$nm_conf"; then
+    mac_ok=1
+fi
+
+if [[ -f "$dot_conf" ]] && grep -q "9.9.9.9" "$dot_conf"; then
+    dot_ok=1
+elif grep -qs "9.9.9.9" /etc/resolv.conf 2>/dev/null; then
+    dot_ok=1
+fi
+
+if [[ "$mac_ok" -eq 1 && "$dot_ok" -eq 1 ]]; then
+    printf '{"text":"󰒃 STEALTH: OK","tooltip":"Prime Directive: MAC Randomization & Quad9 DoT Active","class":"secure"}\n'
+elif [[ "$mac_ok" -eq 1 ]]; then
+    printf '{"text":"󰒃 STEALTH: MAC-ONLY","tooltip":"MAC Randomization active; Quad9 DoT not verified","class":"warning"}\n'
+elif [[ "$dot_ok" -eq 1 ]]; then
+    printf '{"text":"󰒃 STEALTH: DOT-ONLY","tooltip":"Quad9 DoT active; MAC Randomization not verified","class":"warning"}\n'
+else
+    printf '{"text":"󰒃 STEALTH: OFF","tooltip":"Prime Directive: Stealth policies inactive","class":"critical"}\n'
+fi

@@ -6,8 +6,12 @@
     "layer": "top",
     "position": "top",
     "height": 32,
-    "spacing": 8,
+    "spacing": 4,
     "modules-left": [
+        "custom/menu",
+        "custom/installer",
+        "custom/terminal",
+        "custom/ai",
         "sway/workspaces",
         "sway/mode",
         "sway/window"
@@ -17,13 +21,38 @@
     ],
     "modules-right": [
         "custom/synapse",
+        "custom/stealth",
+        "custom/help",
         "cpu",
         "memory",
         "network",
         "pulseaudio",
         "battery",
-        "tray"
+        "tray",
+        "custom/power"
     ],
+    "custom/menu": {
+        "format": "󰚩 SYNAPSE",
+        "on-click": "/usr/bin/synapse-hud",
+        "on-click-right": "/usr/bin/quickfire",
+        "tooltip-format": "Synapse Cockpit\n[Left-Click] Command HUD\n[Right-Click] Quickfire AI"
+    },
+    "custom/installer": {
+        "exec": "if [ -x /usr/bin/calamares ] || [ -f /etc/sudoers.d/00-synapse-live ]; then echo '{\"text\":\"󰐥 INSTALL SYNAPSEOS\",\"tooltip\":\"Launch Calamares Live System Installer\",\"class\":\"active\"}'; fi",
+        "return-type": "json",
+        "interval": 10,
+        "on-click": "/usr/bin/calamares -d"
+    },
+    "custom/terminal": {
+        "format": "󰞷 TERM",
+        "on-click": "kitty",
+        "tooltip-format": "Launch Kitty Terminal (Mod4+Return)"
+    },
+    "custom/ai": {
+        "format": "󰚩 AI",
+        "on-click": "/usr/bin/quickfire",
+        "tooltip-format": "Launch Quickfire AI HUD (Mod4+Space)"
+    },
     "sway/workspaces": {
         "disable-scroll": true,
         "all-outputs": true,
@@ -33,7 +62,7 @@
         "format": "<span style=\"italic\">{}</span>"
     },
     "sway/window": {
-        "max-length": 60,
+        "max-length": 40,
         "separate-outputs": true
     },
     "clock": {
@@ -46,6 +75,17 @@
         "interval": 15,
         "on-click": "/usr/bin/quickfire",
         "tooltip": false
+    },
+    "custom/stealth": {
+        "exec": "/usr/bin/synapse-stealth 2>/dev/null || ( [ -f /etc/NetworkManager/conf.d/00-synapseos-stealth.conf ] && echo '{\"text\":\"󰒃 STEALTH: OK\",\"tooltip\":\"Prime Directive: MAC Randomization & Quad9 DoT Active\",\"class\":\"secure\"}' || echo '{\"text\":\"󰒃 STEALTH: WARN\",\"class\":\"warning\"}' )",
+        "return-type": "json",
+        "interval": 15,
+        "on-click": "kitty --hold /usr/bin/sec-status"
+    },
+    "custom/help": {
+        "format": "󰌌 HELP",
+        "on-click": "/usr/bin/synapse-shortcuts",
+        "tooltip-format": "Cyberdeck Navigation & Keybinding Guide (Mod4+/)"
     },
     "cpu": {
         "format": "CPU {usage}%",
@@ -77,5 +117,10 @@
     },
     "tray": {
         "spacing": 10
+    },
+    "custom/power": {
+        "format": "󰐥",
+        "on-click": "/usr/bin/synapse-power",
+        "tooltip-format": "Session & Power Management"
     }
 }

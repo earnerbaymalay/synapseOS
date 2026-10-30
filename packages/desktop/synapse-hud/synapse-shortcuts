@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# synapse-shortcuts — Display SynapseOS cyberdeck keybinding cheat sheet
+set -euo pipefail
+
+show_cheatsheet() {
+    cat << 'EOF'
+══════════════════════════════════════════════════════════════════════════════
+ 󰚩 SYNAPSEOS CYBERDECK SHORTCUTS & NAVIGATION CHEAT SHEET
+══════════════════════════════════════════════════════════════════════════════
+
+ [Core Navigation & AI Cockpit]
+  Super + Space            Synapse Command HUD (Interactive Tiles & Launcher)
+  Super + d                Synapse Command HUD (App Search & Prompt)
+  Super + Return           Kitty Terminal (Modern GPU-accelerated)
+  Super + Shift + Return   Foot Terminal (Fast Wayland Fallback)
+  Super + i                Launch Calamares System Installer
+  Super + /  (or ?)        This Keybinding Cheat Sheet
+  Super + Ctrl + T         Synapse Theme Switcher (Wallpaper + Accent)
+
+ [Window & Workspace Management]
+  Super + Shift + q        Close Focused Window
+  Super + Shift + e        Exit / Logout Sway Session
+  Super + f                Toggle Fullscreen Mode
+  Super + Shift + Space    Toggle Window Floating / Tiling
+  Super + h / j / k / l    Focus Left / Down / Up / Right (Vim Navigation)
+  Super + Arrow Keys       Focus Left / Down / Up / Right
+  Super + Shift + h/j/k/l  Move Window Left / Down / Up / Right
+  Super + b / v            Split Horizontal / Vertical
+  Super + s / w / e        Layout Stacking / Tabbed / Toggle Split
+  Super + 1 .. 9, 0        Switch to Workspace 1 .. 10
+  Super + Shift + 1 .. 0   Move Container to Workspace 1 .. 10
+
+ [Live Live Audio, Screenshots & Utilities]
+  Print                    Screenshot Region to Clipboard (grim + slurp)
+  Shift + Print            Screenshot Full Screen to Clipboard (grim)
+  Super + r                Enter Window Resize Mode (Esc to return)
+
+══════════════════════════════════════════════════════════════════════════════
+ Press Enter or [q] to close this cheat sheet...
+EOF
+}
+
+if [[ -t 1 ]]; then
+    show_cheatsheet
+    read -r -n 1 -s || true
+else
+    # Launched from GUI without a terminal attached: launch in floating Kitty window
+    exec kitty --title "SynapseOS Keybindings Cheat Sheet" \
+               --class "synapse-shortcuts" \
+               bash -c "$0"
+fi

@@ -13,6 +13,10 @@ source=(
   "synapse-notes"
   "synapse-setup"
   "synapse-welcome"
+  "synapse-shortcuts"
+  "synapse-power"
+  "synapse-stealth"
+  "sec-status"
   "Main.qml"
   "CommandCategoryCard.qml"
   "synapse-hud.desktop"
@@ -21,6 +25,10 @@ source=(
   "synapse-welcome.desktop"
 )
 sha256sums=(
+  'SKIP'
+  'SKIP'
+  'SKIP'
+  'SKIP'
   'SKIP'
   'SKIP'
   'SKIP'
@@ -41,6 +49,10 @@ package() {
   install -Dm755 "${srcdir}/synapse-notes" "${pkgdir}/usr/bin/synapse-notes"
   install -Dm755 "${srcdir}/synapse-setup" "${pkgdir}/usr/bin/synapse-setup"
   install -Dm755 "${srcdir}/synapse-welcome" "${pkgdir}/usr/bin/synapse-welcome"
+  install -Dm755 "${srcdir}/synapse-shortcuts" "${pkgdir}/usr/bin/synapse-shortcuts"
+  install -Dm755 "${srcdir}/synapse-power" "${pkgdir}/usr/bin/synapse-power"
+  install -Dm755 "${srcdir}/synapse-stealth" "${pkgdir}/usr/bin/synapse-stealth"
+  install -Dm755 "${srcdir}/sec-status" "${pkgdir}/usr/bin/sec-status"
   ln -sf "/usr/bin/synapse-hud" "${pkgdir}/usr/bin/synapse-palette"
 
   # QML Assets

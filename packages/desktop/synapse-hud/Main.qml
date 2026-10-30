@@ -33,11 +33,28 @@ Window {
         searchBox.forceActiveFocus()
     }
 
-    Item {
+    FocusScope {
         id: panel
         anchors.fill: parent
         anchors.margins: 12
+        focus: true
         readonly property real c: 18
+
+        Keys.onPressed: function(event) {
+            if (event.key === Qt.Key_Escape) {
+                root.closeHud()
+                event.accepted = true
+                return
+            }
+            if (searchBox.text.length === 0) {
+                var k = event.text.toUpperCase()
+                var action = findCommandByKey(k)
+                if (action !== "") {
+                    root.launchCommand(action)
+                    event.accepted = true
+                }
+            }
+        }
 
         // Drop shadow / glow border
         Rectangle {
@@ -107,20 +124,22 @@ Window {
             spacing: 16
 
             // Header Row
-            Row {
+            Item {
                 width: parent.width
-                spacing: 12
+                height: headerTitle.implicitHeight
 
                 Text {
+                    id: headerTitle
+                    anchors.left: parent.left
+                    anchors.verticalCenter: parent.verticalCenter
                     text: "󰚩 SYNAPSE COMMAND HUD"
                     color: root.accent
                     font { family: root.mono; pixelSize: 13; bold: true; letterSpacing: 1.2 }
                 }
 
-                Item { width: 1; height: 1 }
-
                 Text {
                     anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
                     text: "[Esc] Close  ·  [Click or Hotkey] Fire"
                     color: "#6c7086"
                     font { family: root.mono; pixelSize: 11 }
@@ -166,10 +185,26 @@ Window {
                             anchors.verticalCenter: parent.verticalCenter
                         }
 
-                        Keys.onEscapePressed: root.closeHud()
-                        Keys.onReturnPressed: {
-                            if (searchBox.text.trim().length > 0) {
-                                root.launchCommand("AI_PROMPT:" + searchBox.text.trim())
+                        Keys.onPressed: function(event) {
+                            if (event.key === Qt.Key_Escape) {
+                                root.closeHud()
+                                event.accepted = true
+                                return
+                            }
+                            if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                if (searchBox.text.trim().length > 0) {
+                                    root.launchCommand("AI_PROMPT:" + searchBox.text.trim())
+                                    event.accepted = true
+                                }
+                                return
+                            }
+                            if (searchBox.text.length === 0) {
+                                var k = event.text.toUpperCase()
+                                var action = findCommandByKey(k)
+                                if (action !== "") {
+                                    root.launchCommand(action)
+                                    event.accepted = true
+                                }
                             }
                         }
                     }
@@ -272,24 +307,6 @@ Window {
                     filterText: searchBox.text
                     onItemTriggered: function(c) { root.launchCommand(c) }
                 }
-            }
-        }
-    }
-
-    // Global Key Handling for Hotkeys
-    Keys.onPressed: function(event) {
-        if (event.key === Qt.Key_Escape) {
-            root.closeHud()
-            event.accepted = true
-            return
-        }
-        // Direct single-letter trigger if search box is empty
-        if (searchBox.text.length === 0) {
-            var k = event.text.toUpperCase()
-            var action = findCommandByKey(k)
-            if (action !== "") {
-                root.launchCommand(action)
-                event.accepted = true
             }
         }
     }

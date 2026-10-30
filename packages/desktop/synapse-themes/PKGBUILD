@@ -67,4 +67,5 @@ package() {
   for wp in synapse-*.jpg; do
     install -Dm644 "$wp" "$pkgdir/usr/share/backgrounds/synapseos/$wp"
   done
+  ln -sf "/usr/share/backgrounds/synapseos/synapse-monolith-mauve.jpg" "$pkgdir/usr/share/backgrounds/synapseos/monolith-mauve.png"
 }

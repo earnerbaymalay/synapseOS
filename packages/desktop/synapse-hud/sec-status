@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# sec-status — SynapseOS Prime Directive Security, MAC Randomization & DoT Auditor
+set -euo pipefail
+
+BOLD="\033[1m"
+GREEN="\033[1;32m"
+YELLOW="\033[1;33m"
+CYAN="\033[1;36m"
+MAUVE="\033[1;35m"
+RESET="\033[0m"
+
+echo -e "${MAUVE}══════════════════════════════════════════════════════════════════${RESET}"
+echo -e "${MAUVE} 󰒃 SYNAPSEOS PRIME DIRECTIVE SECURITY & ANONYMITY AUDIT          ${RESET}"
+echo -e "${MAUVE}══════════════════════════════════════════════════════════════════${RESET}\n"
+
+# 1. MAC Address Randomization Check
+echo -e "${CYAN}[1/4] Hardware MAC Address Randomization Posture:${RESET}"
+nm_conf="/etc/NetworkManager/conf.d/00-synapseos-stealth.conf"
+if [[ -f "$nm_conf" ]] && grep -q "wifi.scan-rand-mac-address=yes" "$nm_conf" && grep -q "wifi.cloned-mac-address=random" "$nm_conf"; then
+    echo -e "  ${GREEN}✔ Configured:${RESET} Scan MAC randomization + Per-connection cloned MAC randomization active"
+else
+    echo -e "  ${YELLOW}⚠ Warning:${RESET} Custom NetworkManager stealth config not fully active"
+fi
+
+echo -e "  ${BOLD}Active Network Interfaces & Assigned MACs:${RESET}"
+ip -br link | while read -r iface state mac rest; do
+    echo -e "    • ${BOLD}${iface}${RESET} (${state}): ${CYAN}${mac}${RESET}"
+done
+echo
+
+# 2. DNS-over-TLS (DoT) & Quad9 Resolver
+echo -e "${CYAN}[2/4] DNS-over-TLS (DoT) Resolution Posture:${RESET}"
+dot_conf="/etc/systemd/resolved.conf.d/quad9-dot.conf"
+if [[ -f "$dot_conf" ]] && grep -q "9.9.9.9" "$dot_conf" && grep -q "DNSOverTLS=yes" "$dot_conf"; then
+    echo -e "  ${GREEN}✔ Configured:${RESET} Secure Quad9 (9.9.9.9) over TLS (Port 853) enforced"
+else
+    echo -e "  ${YELLOW}⚠ Warning:${RESET} Quad9 DoT configuration missing or altered"
+fi
+
+if command -v resolvectl >/dev/null 2>&1; then
+    echo -e "  ${BOLD}Systemd-resolved Global DNS Servers:${RESET}"
+    resolvectl dns 2>/dev/null | sed 's/^/    /' || echo "    (No active resolvectl link)"
+fi
+echo
+
+# 3. IPv6 Privacy Extensions (RFC 4941)
+echo -e "${CYAN}[3/4] IPv6 RFC 4941 Privacy Extensions:${RESET}"
+if sysctl net.ipv6.conf.default.use_tempaddr 2>/dev/null | grep -q "2"; then
+    echo -e "  ${GREEN}✔ Active:${RESET} sysctl use_tempaddr=2 (preferred temporary privacy addresses)"
+elif grep -qs "ipv6.ip6-privacy=2" "$nm_conf"; then
+    echo -e "  ${GREEN}✔ Enforced:${RESET} NetworkManager ipv6.ip6-privacy=2 configured"
+else
+    echo -e "  ${YELLOW}• Status:${RESET} Default IPv6 configuration"
+fi
+echo
+
+# 4. Inbound Packet & Port Posture
+echo -e "${CYAN}[4/4] Inbound Shield & Firewall State:${RESET}"
+if command -v firewall-cmd >/dev/null 2>&1; then
+    fw_state="$(sudo firewall-cmd --state 2>/dev/null || firewall-cmd --state 2>/dev/null || echo "inactive")"
+    if [[ "$fw_state" == "running" ]]; then
+        echo -e "  ${GREEN}✔ Firewalld:${RESET} Active and dropping unsolicited inbound packets"
+    else
+        echo -e "  ${YELLOW}• Firewalld:${RESET} ${fw_state}"
+    fi
+else
+    echo -e "  ${YELLOW}• Firewalld:${RESET} Not running"
+fi
+
+echo -e "\n${MAUVE}══════════════════════════════════════════════════════════════════${RESET}"
+echo -e " Audit complete. Press Enter to close..."
+read -r -s || true

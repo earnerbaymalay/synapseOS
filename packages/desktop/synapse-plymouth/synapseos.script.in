@@ -1,27 +1,41 @@
 # SynapseOS — "Twin Hook" laser-engrave boot splash (Plymouth script plugin)
-# Frames are pre-rendered per accent by render_frames.py; this script only plays
-# them one at a time (low RAM in the initramfs), then holds on the final emblem
-# with a breathing glow. Handles the LUKS passphrase prompt and boot messages.
+# Frames are pre-rendered per accent by render_frames.py; this script plays them
+# sequentially (minimal RAM in initramfs), then holds on the finished emblem with
+# an organic breathing glow pulse. Handles LUKS passphrase prompt and boot messages.
 
-Window.SetBackgroundTopColor(0.035, 0.035, 0.051);
-Window.SetBackgroundBottomColor(0.035, 0.035, 0.051);
+Window.SetBackgroundTopColor(0.067, 0.067, 0.106);
+Window.SetBackgroundBottomColor(0.067, 0.067, 0.106);
 
 FRAMES = @FRAMES@;
 ACCENT_R = @ACCENT_R@;
 ACCENT_G = @ACCENT_G@;
 ACCENT_B = @ACCENT_B@;
 
-# Frames are authored for a 1080p screen; scale to the actual height.
-scale = Window.GetHeight() / 1080;
-if (scale < 0.45) scale = 0.45;
+# Authored canvas: 600x560 at 1080p.
+# Robust multi-resolution display scaling across 720p, 1080p, 1440p, 4K without distortion.
+screen_w = Window.GetWidth();
+screen_h = Window.GetHeight();
+
+scale_h = screen_h / 1080;
+scale_w = (screen_w * 0.85) / 600;
+
+if (scale_h < scale_w) {
+    scale = scale_h;
+} else {
+    scale = scale_w;
+}
+
+if (scale < 0.40) scale = 0.40;
+if (scale > 3.00) scale = 3.00;
+
 fw = Math.Int(600 * scale);
 fh = Math.Int(560 * scale);
-fx = Window.GetX() + Math.Int((Window.GetWidth() - fw) / 2);
-fy = Window.GetY() + Math.Int((Window.GetHeight() - fh) / 2);
+fx = Window.GetX() + Math.Int((screen_w - fw) / 2);
+fy = Window.GetY() + Math.Int((screen_h - fh) / 2);
 
 fun load(name) {
     img = Image(name);
-    if (scale != 1) img = img.Scale(fw, fh);
+    if (scale != 1.0) img = img.Scale(fw, fh);
     return img;
 }
 
@@ -42,7 +56,7 @@ global.shown = -1;
 global.held = 0;
 global.hold_start = 0;
 
-# Plymouth calls this at 50 Hz; frames advance every second call (25 fps).
+# Plymouth calls refresh at 50 Hz; frames advance every 2 ticks (25 fps).
 fun refresh_callback() {
     global.tick = global.tick + 1;
     n = Math.Int(global.tick / 2);
@@ -58,8 +72,17 @@ fun refresh_callback() {
             global.held = 1;
             global.hold_start = global.tick;
         }
-        # ~2.4 s breath
-        glow.SetOpacity(0.25 + 0.25 * Math.Sin((global.tick - global.hold_start) / 50 * 2.6));
+        # Organic breathing glow with smooth sine pulse & seamless fade-in
+        hold_ticks = global.tick - global.hold_start;
+        fade_in = hold_ticks / 35;
+        if (fade_in > 1.0) fade_in = 1.0;
+
+        # Organic breathing cycle: ~3.0s period (150 ticks at 50Hz)
+        # Smooth sine with smoothstep easing for lifelike biological expansion
+        phase = (hold_ticks / 50) * (2 * 3.14159 / 3.0);
+        sine_norm = (Math.Sin(phase) + 1.0) / 2.0;
+        pulse = sine_norm * sine_norm * (3.0 - 2.0 * sine_norm);
+        glow.SetOpacity(fade_in * (0.15 + 0.65 * pulse));
     }
 }
 Plymouth.SetRefreshFunction(refresh_callback);
@@ -71,21 +94,26 @@ prompt_sprite.SetOpacity(0);
 bullet_sprite.SetOpacity(0);
 
 fun display_password_callback(prompt, bullets) {
-    p = Image.Text(prompt, 0.80, 0.84, 0.96);
+    # Crisp Liquid Silver Chrome text (#cdd6f4)
+    p = Image.Text(prompt, 0.804, 0.839, 0.957);
     prompt_sprite.SetImage(p);
-    prompt_sprite.SetPosition(Window.GetX() + Math.Int((Window.GetWidth() - p.GetWidth()) / 2), fy + fh + Math.Int(18 * scale), 10);
+    px = Window.GetX() + Math.Int((Window.GetWidth() - p.GetWidth()) / 2);
+    py = fy + fh + Math.Int(24 * scale);
+    prompt_sprite.SetPosition(px, py, 10);
     prompt_sprite.SetOpacity(1);
 
     dots = "";
     i = 0;
     while (i < bullets) {
-        dots = dots + "•";
+        dots = dots + " • ";
         i = i + 1;
     }
-    if (dots == "") dots = "_";
+    if (dots == "") dots = " _ ";
     b = Image.Text(dots, ACCENT_R, ACCENT_G, ACCENT_B);
     bullet_sprite.SetImage(b);
-    bullet_sprite.SetPosition(Window.GetX() + Math.Int((Window.GetWidth() - b.GetWidth()) / 2), fy + fh + Math.Int(18 * scale) + p.GetHeight() + 8, 10);
+    bx = Window.GetX() + Math.Int((Window.GetWidth() - b.GetWidth()) / 2);
+    by = py + p.GetHeight() + Math.Int(10 * scale);
+    bullet_sprite.SetPosition(bx, by, 10);
     bullet_sprite.SetOpacity(1);
 }
 Plymouth.SetDisplayPasswordFunction(display_password_callback);
@@ -99,9 +127,13 @@ Plymouth.SetDisplayNormalFunction(display_normal_callback);
 # --- Boot messages (e.g. fsck), bottom centre ----------------------------------
 message_sprite = Sprite();
 fun message_callback(text) {
-    m = Image.Text(text, 0.58, 0.60, 0.70);
+    # Catppuccin Overlay1 / Telemetry Gray (#7f849c)
+    m = Image.Text(text, 0.498, 0.518, 0.612);
     message_sprite.SetImage(m);
-    message_sprite.SetPosition(Window.GetX() + Math.Int((Window.GetWidth() - m.GetWidth()) / 2), Window.GetY() + Window.GetHeight() - m.GetHeight() - Math.Int(40 * scale), 10);
+    mx = Window.GetX() + Math.Int((Window.GetWidth() - m.GetWidth()) / 2);
+    my = Window.GetY() + Window.GetHeight() - m.GetHeight() - Math.Int(36 * scale);
+    message_sprite.SetPosition(mx, my, 10);
+    message_sprite.SetOpacity(1);
 }
 Plymouth.SetMessageFunction(message_callback);
 
