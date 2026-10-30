@@ -450,6 +450,13 @@ if python3 -c 'import yaml' 2>/dev/null; then
 else
     warn "python3-yaml unavailable; skipping Calamares YAML validation"
 fi
+if [[ "$(readlink "${REPO_ROOT}/build/archiso/airootfs/etc/resolv.conf" 2>/dev/null)" == "/run/systemd/resolve/stub-resolv.conf" ]]; then
+    pass "Live resolv.conf links to the systemd-resolved stub (Quad9 DoT)"
+else
+    fail "Live resolv.conf links to the systemd-resolved stub (Quad9 DoT)"
+fi
+check_file_lacks "${REPO_ROOT}/build/archiso/airootfs/etc/mkinitcpio.conf.d/archiso.conf" 'archiso_pxe' "Live initramfs has no PXE hooks (nbd/nfs helpers not shipped)"
+check_file_lacks "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh" '(?m)^ln .*/etc/resolv\.conf' "customize_airootfs.sh does not replace chroot-bind-mounted resolv.conf"
 
 # V4 theme pack & screensaver
 THEMES_DIR="${REPO_ROOT}/packages/desktop/synapse-themes"

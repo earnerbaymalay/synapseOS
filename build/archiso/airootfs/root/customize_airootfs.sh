@@ -68,8 +68,8 @@ done
 # Ensure SDDM display-manager symlink is established
 ln -sf /usr/lib/systemd/system/sddm.service /etc/systemd/system/display-manager.service
 
-# Link systemd-resolved stub resolv.conf for Quad9 DoT
-ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+# /etc/resolv.conf -> systemd-resolved stub (Quad9 DoT) ships as a symlink in the profile
+# airootfs: inside arch-chroot it is bind-mounted from the build host and can't be replaced.
 
 # Pacman Keyring: generated per boot on a tmpfs, never at build time, so no two
 # SynapseOS machines share a pacman master signing key. `--populate` picks up the
