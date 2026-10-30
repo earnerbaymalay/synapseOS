@@ -1,0 +1,20 @@
+---
+description: SynapseOS security, stealth, and clean-repo rules for every session
+alwaysApply: true
+---
+
+# Prime Directive
+
+- Prefer security, zero telemetry, and network anonymity in every overlay, package, and daemon change.
+- Keep MAC randomization, Quad9 DNS-over-TLS (`9.9.9.9:853`), RFC 4941 IPv6 privacy, and drop-unsolicited firewall posture intact.
+- Never put ISO blobs, chroots, `out/`, credentials, or `.env` files in Git.
+- Layer work into `packages/`, `build/`, `overlay/`, and `docs/`. Packages must stay `makepkg`-clean.
+
+```bash
+# ❌ BAD
+git add out/synapseos-2026.10.30-x86_64.iso
+
+# ✅ GOOD
+./build/verify-gates.sh
+./build/build-iso.sh --dry-run
+```

@@ -1,0 +1,25 @@
+---
+description: Overlay and NetworkManager stealth posture for SynapseOS
+globs: overlay/**/*
+alwaysApply: false
+---
+
+# Overlay Stealth
+
+- Preserve `wifi.scan-rand-mac-address=yes` and `wifi.cloned-mac-address=random`.
+- Keep `ipv6.ip6-privacy=2` and Quad9 DoT in `systemd-resolved`.
+- Do not restore hardware MAC `b4:69:21:fa:71:d4` or enable mDNS/Avahi.
+- Do not weaken firewalld drop-incoming or ICMP ignore settings.
+
+```ini
+# ❌ BAD
+[connection]
+wifi.cloned-mac-address=permanent
+
+# ✅ GOOD
+[device]
+wifi.scan-rand-mac-address=yes
+[connection]
+wifi.cloned-mac-address=random
+ipv6.ip6-privacy=2
+```
