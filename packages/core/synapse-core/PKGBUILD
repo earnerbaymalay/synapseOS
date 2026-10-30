@@ -1,7 +1,7 @@
 # Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
 pkgname=synapse-core
 pkgver=0.1.0
-pkgrel=1
+pkgrel=2
 pkgdesc="Core AI runtime gateway, bidirectional context firewall, and 3-layer agent memory daemon for SynapseOS"
 arch=('x86_64')
 url="https://github.com/earnerbaymalay/synapse"

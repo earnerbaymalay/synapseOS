@@ -1,12 +1,13 @@
 [Unit]
 Description=Synapse AI Core Runtime Gateway & Context Firewall
 Documentation=https://github.com/earnerbaymalay/synapse
-After=network-online.target ollama.service
-Wants=network-online.target
+# Localhost-only gateway in front of local ollama: no network-online dependency
+After=ollama.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/synapse serve --host 127.0.0.1 --port 8000 --config /etc/synapse/config.toml
+# `serve` takes CLI flags only (no --config); clap exits 2 on unknown arguments
+ExecStart=/usr/bin/synapse serve --host 127.0.0.1 --port 8000
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=on-failure
 RestartSec=3
@@ -36,7 +37,6 @@ SystemCallArchitectures=native
 
 # Environment
 Environment="RUST_LOG=info,synapse=info"
-Environment="SYNAPSE_CONFIG=/etc/synapse/config.toml"
 
 [Install]
 WantedBy=multi-user.target

@@ -65,6 +65,10 @@ for svc in "${SERVICES[@]}"; do
     systemctl enable "${svc}" 2>/dev/null || ln -sf "/usr/lib/systemd/system/${svc}" "/etc/systemd/system/multi-user.target.wants/${svc}" || true
 done
 
+# NetworkManager owns networking. systemd presets also enable systemd-networkd, whose
+# wait-online unit times out (~2 min) and stalls network-online.target consumers.
+systemctl disable systemd-networkd.service systemd-networkd.socket systemd-networkd-wait-online.service 2>/dev/null || true
+
 # Ensure SDDM display-manager symlink is established
 ln -sf /usr/lib/systemd/system/sddm.service /etc/systemd/system/display-manager.service
 

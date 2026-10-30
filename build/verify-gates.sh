@@ -457,6 +457,9 @@ else
 fi
 check_file_lacks "${REPO_ROOT}/build/archiso/airootfs/etc/mkinitcpio.conf.d/archiso.conf" 'archiso_pxe' "Live initramfs has no PXE hooks (nbd/nfs helpers not shipped)"
 check_file_lacks "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh" '(?m)^ln .*/etc/resolv\.conf' "customize_airootfs.sh does not replace chroot-bind-mounted resolv.conf"
+check_file_lacks "${REPO_ROOT}/packages/core/synapse-core/synapse.service" 'ExecStart=.*--config' "synapse.service passes only flags 'synapse serve' accepts"
+check_file_lacks "${REPO_ROOT}/packages/core/synapse-core/synapse.service" 'network-online\.target' "synapse.service does not wait on network-online (localhost gateway)"
+check_file_contains "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh" 'systemctl disable systemd-networkd\.service' "systemd-networkd disabled (NetworkManager owns networking)"
 
 # V4 theme pack & screensaver
 THEMES_DIR="${REPO_ROOT}/packages/desktop/synapse-themes"
