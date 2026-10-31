@@ -47,12 +47,15 @@ window#waybar {
 #mode,
 #clock,
 #custom-menu,
+#custom-hud,
 #custom-installer,
+#custom-calamares,
 #custom-terminal,
 #custom-ai,
 #custom-synapse,
 #custom-stealth,
 #custom-help,
+#custom-shortcuts,
 #custom-power,
 #cpu,
 #memory,
@@ -67,8 +70,9 @@ window#waybar {
     border: 1px solid #cba6f7;
 }
 
-/* --- Synapse Cockpit Menu Button --- */
-#custom-menu {
+/* --- Synapse Cockpit Menu & HUD Button --- */
+#custom-menu,
+#custom-hud {
     background-color: #11111b;
     color: #cba6f7;
     font-weight: bold;
@@ -76,13 +80,15 @@ window#waybar {
     padding: 0 12px;
 }
 
-#custom-menu:hover {
+#custom-menu:hover,
+#custom-hud:hover {
     background-color: #cba6f7;
     color: #11111b;
 }
 
 /* --- Calamares Installer Action Banner (Live Session) --- */
-#custom-installer {
+#custom-installer,
+#custom-calamares {
     background-color: #cba6f7;
     color: #11111b;
     font-weight: bold;
@@ -91,7 +97,8 @@ window#waybar {
     margin: 2px 4px;
 }
 
-#custom-installer:hover {
+#custom-installer:hover,
+#custom-calamares:hover {
     background-color: #b4befe;
     color: #11111b;
 }
@@ -136,14 +143,16 @@ window#waybar {
     border-color: #f38ba8;
 }
 
-/* --- Help Cheat Sheet Button --- */
-#custom-help {
+/* --- Help & Shortcuts Cheat Sheet Button --- */
+#custom-help,
+#custom-shortcuts {
     background-color: #1e1e2e;
     color: #74c7ec;
     border-color: #74c7ec;
 }
 
-#custom-help:hover {
+#custom-help:hover,
+#custom-shortcuts:hover {
     background-color: #74c7ec;
     color: #11111b;
 }

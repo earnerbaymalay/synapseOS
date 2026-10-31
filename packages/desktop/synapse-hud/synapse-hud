@@ -27,6 +27,10 @@ class HudBackend(QObject):
 
         if action.startswith("AI_PROMPT:"):
             prompt = action[len("AI_PROMPT:"):].strip()
+            if prompt.startswith("?"):
+                prompt = prompt[1:].strip()
+            elif prompt.lower().startswith("ai "):
+                prompt = prompt[3:].strip()
             if prompt:
                 # Fire direct prompt to Ollama in a popup Kitty terminal
                 subprocess.Popen([

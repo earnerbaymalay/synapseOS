@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# /usr/bin/audio-switch — SynapseOS Cyberdeck Audio Output & Sink Switcher
+# Seamlessly enumerates PipeWire/PulseAudio output sinks and updates routing.
+# ==============================================================================
+set -euo pipefail
+
+notify() {
+    command -v notify-send >/dev/null 2>&1 && notify-send -i audio-card "Audio Output Switcher" "$1" 2>/dev/null || true
+}
+
+move_all() {
+    local target="$1"
+    for id in $(pactl list short sink-inputs 2>/dev/null | awk '{print $1}'); do
+        pactl move-sink-input "$id" "$target" 2>/dev/null || true
+    done
+}
+
+set_sink() {
+    local sink_name="$1"
+    local sink_desc="${2:-$sink_name}"
+    if [[ -z "$sink_name" ]]; then
+        notify "Error: No sink specified"
+        return 1
+    fi
+    pactl set-default-sink "$sink_name" || { notify "Failed to set default sink: $sink_name"; return 1; }
+    move_all "$sink_name"
+    notify "Active Output: $sink_desc"
+}
+
+# If volume mixer requested
+if [[ "${1:-}" == "--mixer" || "${1:-}" == "-m" || "${1:-}" == "mixer" ]]; then
+    exec pavucontrol
+fi
+
+current_sink="$(pactl get-default-sink 2>/dev/null || true)"
+
+declare -a sink_names=()
+declare -a sink_labels=()
+current_name=""
+current_desc=""
+
+# Parse output sinks from pactl
+while IFS= read -r line; do
+    line="$(echo "$line" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+    if [[ "$line" =~ ^Sink[[:space:]]+# ]]; then
+        if [[ -n "$current_name" ]]; then
+            sink_names+=("$current_name")
+            icon="󰓃"
+            [[ "$current_name" =~ bluez ]] && icon="󰂯"
+            [[ "$current_name" =~ (headphone|headset) ]] && icon="󰋋"
+            [[ "$current_name" =~ (hdmi|displayport) ]] && icon="󰍹"
+            mark="  "
+            [[ "$current_name" == "$current_sink" ]] && mark="✔ "
+            sink_labels+=("${mark}${icon} ${current_desc:-$current_name}")
+        fi
+        current_name=""
+        current_desc=""
+    elif [[ "$line" =~ ^Name:[[:space:]]*(.*) ]]; then
+        current_name="${BASH_REMATCH[1]}"
+    elif [[ "$line" =~ ^Description:[[:space:]]*(.*) ]]; then
+        current_desc="${BASH_REMATCH[1]}"
+    fi
+done < <(pactl list sinks 2>/dev/null)
+
+if [[ -n "$current_name" ]]; then
+    sink_names+=("$current_name")
+    icon="󰓃"
+    [[ "$current_name" =~ bluez ]] && icon="󰂯"
+    [[ "$current_name" =~ (headphone|headset) ]] && icon="󰋋"
+    [[ "$current_name" =~ (hdmi|displayport) ]] && icon="󰍹"
+    mark="  "
+    [[ "$current_name" == "$current_sink" ]] && mark="✔ "
+    sink_labels+=("${mark}${icon} ${current_desc:-$current_name}")
+fi
+
+declare -a menu_items=("${sink_labels[@]}")
+menu_items+=("⚙ Open Volume Mixer (pavucontrol)")
+menu_items+=("󰝟 Toggle Mute Output")
+
+choice=""
+if command -v rofi >/dev/null 2>&1 && [ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]; then
+    choice=$(printf '%s\n' "${menu_items[@]}" | rofi -dmenu -i -p "󰕾 Audio Output" -theme-str 'window {width: 480px;} listview {lines: 8;}') || exit 0
+elif command -v wofi >/dev/null 2>&1 && [ -n "${WAYLAND_DISPLAY:-}" ]; then
+    choice=$(printf '%s\n' "${menu_items[@]}" | wofi --dmenu --prompt "󰕾 Audio Output") || exit 0
+elif command -v zenity >/dev/null 2>&1 && [ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]; then
+    choice=$(printf '%s\n' "${menu_items[@]}" | zenity --list --title="Audio Output Switcher" --column="Select Audio Output" 2>/dev/null) || exit 0
+elif [ -t 0 ]; then
+    echo "=== SynapseOS Audio Output Switcher ==="
+    select opt in "${menu_items[@]}"; do
+        choice="$opt"
+        break
+    done
+else
+    # Fallback to pavucontrol if no interactive dialog available
+    exec pavucontrol
+fi
+
+[[ -z "${choice:-}" ]] && exit 0
+
+if [[ "$choice" == *"pavucontrol"* ]]; then
+    exec pavucontrol
+elif [[ "$choice" == *"Toggle Mute"* ]]; then
+    pactl set-sink-mute @DEFAULT_SINK@ toggle
+    notify "Audio output mute toggled"
+    exit 0
+fi
+
+for i in "${!sink_labels[@]}"; do
+    if [[ "${sink_labels[$i]}" == "$choice" ]]; then
+        clean_desc="$(echo "$choice" | sed -e 's/^[✔[:space:]]*//' -e 's/^[^[:alnum:]]*//' -e 's/^[[:space:]]*//')"
+        set_sink "${sink_names[$i]}" "$clean_desc"
+        exit 0
+    fi
+done

@@ -412,6 +412,19 @@ check_file_contains "${CAL_BRANDING}" "componentName:[[:space:]]*synapseos" "Cal
 check_file_contains "${CAL_BRANDING}" "#11111b" "Calamares branding.desc includes Obsidian Crust (#11111b)"
 check_file_contains "${CAL_BRANDING}" "#cdd6f4" "Calamares branding.desc includes Liquid Silver Chrome (#cdd6f4)"
 check_file_contains "${CAL_BRANDING}" "#cba6f7" "Calamares branding.desc includes Catppuccin Mauve (#cba6f7)"
+CAL_BRANDING_DIR="${REPO_ROOT}/packages/installer/calamares/branding/synapseos"
+for asset in synapseos-logo.svg synapseos-icon.svg synapseos-welcome.png background.png show.qml; do
+    if [[ -s "${CAL_BRANDING_DIR}/${asset}" ]]; then
+        pass "Calamares branding asset present: ${asset}"
+    else
+        fail "Calamares branding asset present: ${asset}"
+    fi
+done
+check_file_contains "${CAL_BRANDING_DIR}/show.qml" "onActivate" "Calamares show.qml implements API 2 onActivate()"
+check_file_contains "${CAL_BRANDING_DIR}/show.qml" "onLeave" "Calamares show.qml implements API 2 onLeave()"
+check_file_contains "${CAL_BRANDING_DIR}/show.qml" "BORE" "Calamares show.qml showcases CachyOS BORE kernel"
+check_file_contains "${CAL_BRANDING_DIR}/show.qml" "Ollama" "Calamares show.qml showcases local Ollama AI engine"
+check_file_contains "${CAL_BRANDING_DIR}/show.qml" "Quad9" "Calamares show.qml showcases Quad9 DNS-over-TLS"
 check_file_contains "${CAL_PARTITION}" 'defaultFileSystemType:[[:space:]]*"btrfs"' "Calamares partition.conf defaults to Btrfs"
 check_file_contains "${CAL_PARTITION}" "/@snapshots" "Calamares partition.conf defines @snapshots subvolume"
 check_file_contains "${CAL_SERVICES}" "synapse" "Calamares services-systemd.conf enables synapse service"

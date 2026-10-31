@@ -37,7 +37,19 @@
         "on-click-right": "/usr/bin/quickfire",
         "tooltip-format": "Synapse Cockpit\n[Left-Click] Command HUD\n[Right-Click] Quickfire AI"
     },
+    "custom/hud": {
+        "format": "󰚩 HUD",
+        "on-click": "/usr/bin/synapse-hud",
+        "on-click-right": "/usr/bin/quickfire",
+        "tooltip-format": "Synapse Command HUD (Mod4+Space)\n[Left-Click] Command HUD\n[Right-Click] Quickfire AI"
+    },
     "custom/installer": {
+        "exec": "if [ -x /usr/bin/calamares ] || [ -f /etc/sudoers.d/00-synapse-live ]; then echo '{\"text\":\"󰐥 INSTALL SYNAPSEOS\",\"tooltip\":\"Launch Calamares Live System Installer\",\"class\":\"active\"}'; fi",
+        "return-type": "json",
+        "interval": 10,
+        "on-click": "/usr/bin/calamares -d"
+    },
+    "custom/calamares": {
         "exec": "if [ -x /usr/bin/calamares ] || [ -f /etc/sudoers.d/00-synapse-live ]; then echo '{\"text\":\"󰐥 INSTALL SYNAPSEOS\",\"tooltip\":\"Launch Calamares Live System Installer\",\"class\":\"active\"}'; fi",
         "return-type": "json",
         "interval": 10,
@@ -80,10 +92,15 @@
         "exec": "/usr/bin/synapse-stealth 2>/dev/null || ( [ -f /etc/NetworkManager/conf.d/00-synapseos-stealth.conf ] && echo '{\"text\":\"󰒃 STEALTH: OK\",\"tooltip\":\"Prime Directive: MAC Randomization & Quad9 DoT Active\",\"class\":\"secure\"}' || echo '{\"text\":\"󰒃 STEALTH: WARN\",\"class\":\"warning\"}' )",
         "return-type": "json",
         "interval": 15,
-        "on-click": "kitty --hold /usr/bin/sec-status"
+        "on-click": "/usr/bin/sec-status"
     },
     "custom/help": {
         "format": "󰌌 HELP",
+        "on-click": "/usr/bin/synapse-shortcuts",
+        "tooltip-format": "Cyberdeck Navigation & Keybinding Guide (Mod4+/)"
+    },
+    "custom/shortcuts": {
+        "format": "󰌌 KEYS",
         "on-click": "/usr/bin/synapse-shortcuts",
         "tooltip-format": "Cyberdeck Navigation & Keybinding Guide (Mod4+/)"
     },
@@ -104,7 +121,8 @@
     "pulseaudio": {
         "format": "VOL {volume}%",
         "format-muted": "VOL MUTED",
-        "on-click": "pavucontrol"
+        "on-click": "/usr/bin/audio-switch",
+        "on-click-right": "pavucontrol"
     },
     "battery": {
         "states": {

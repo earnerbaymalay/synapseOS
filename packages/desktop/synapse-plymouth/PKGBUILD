@@ -9,7 +9,7 @@ license=('MIT')
 depends=('plymouth')
 makedepends=('python' 'python-pillow' 'python-numpy')
 source=('render_frames.py' 'synapseos.script.in')
-sha256sums=('28f48a48a6031503c3d212ea21b8db22f877b68f20456ec2e13142372156eee8'
+sha256sums=('8da5ef0380fc6edbedefd0327ac75f1ff9b89a2b51718d21f577f619c6d01308'
             'c8e7a7c801aa63df32565f8454d31a9ad6f225477507301daaa7f6cf6e81fb08')
 
 _accents=(

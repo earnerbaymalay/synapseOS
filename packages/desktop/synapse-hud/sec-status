@@ -2,6 +2,11 @@
 # sec-status — SynapseOS Prime Directive Security, MAC Randomization & DoT Auditor
 set -euo pipefail
 
+# If launched from GUI/Waybar without a TTY, spawn within an interactive terminal
+if [ ! -t 1 ] && [ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]; then
+    exec kitty --class sec-status -T "SynapseOS Security & Anonymity Audit" "$0" "$@"
+fi
+
 BOLD="\033[1m"
 GREEN="\033[1;32m"
 YELLOW="\033[1;33m"

@@ -19,17 +19,17 @@ Item {
         mauve: "#cba6f7", tungsten: "#fab387", crimson: "#f38ba8",
         sapphire: "#74c7ec", emerald: "#a6e3a1"
     })
-    readonly property string variant: config.stringValue("variant") !== "" ? config.stringValue("variant") : "monolith-mauve"
+    readonly property string variant: (typeof config !== "undefined" && config && config.stringValue && config.stringValue("variant") !== "") ? config.stringValue("variant") : "monolith-mauve"
     readonly property color accent: accents[variant.split("-").pop()] || accents.mauve
     readonly property color text: "#cdd6f4"
     readonly property color subtext: "#a6adc8"
     readonly property color muted: "#9399b2"
     readonly property string mono: "JetBrainsMono Nerd Font"
-    readonly property bool animate: config.stringValue("animations") !== "false"
-    readonly property string wallDir: config.stringValue("backgrounds") !== "" ? config.stringValue("backgrounds") : "/usr/share/backgrounds/synapseos"
+    readonly property bool animate: (typeof config !== "undefined" && config && config.stringValue) ? (config.stringValue("animations") !== "false") : true
+    readonly property string wallDir: (typeof config !== "undefined" && config && config.stringValue && config.stringValue("backgrounds") !== "") ? config.stringValue("backgrounds") : "/usr/share/backgrounds/synapseos"
 
-    property string userName: config.stringValue("user") !== "" ? config.stringValue("user") : userModel.lastUser
-    property int sessionIndex: sessionModel.lastIndex >= 0 ? sessionModel.lastIndex : 0
+    property string userName: (typeof config !== "undefined" && config && config.stringValue && config.stringValue("user") !== "") ? config.stringValue("user") : ((typeof userModel !== "undefined" && userModel && userModel.lastUser) ? userModel.lastUser : "")
+    property int sessionIndex: (typeof sessionModel !== "undefined" && sessionModel && sessionModel.lastIndex >= 0) ? sessionModel.lastIndex : 0
     property bool busy: false
     property date now: new Date()
 
@@ -40,7 +40,8 @@ Item {
             return
         busy = true
         status.show("authenticating…", accent)
-        sddm.login(userName, password.text, sessionIndex)
+        if (typeof sddm !== "undefined" && sddm && sddm.login)
+            sddm.login(userName, password.text, sessionIndex)
     }
 
     // No remembered user (fresh install): fall back to the first account.
@@ -73,7 +74,7 @@ Item {
     focus: true
     Keys.onPressed: function(event) {
         var n = event.key - Qt.Key_F2
-        if (n >= 0 && n < sessionModel.rowCount()) {
+        if (n >= 0 && (typeof sessionModel !== "undefined" && sessionModel && typeof sessionModel.rowCount === "function" && n < sessionModel.rowCount())) {
             root.sessionIndex = n
             event.accepted = true
         }
@@ -121,7 +122,7 @@ Item {
             spacing: 8 * root.s
             Repeater {
                 model: [
-                    ["HOST", sddm.hostName, false],
+                    ["HOST", (typeof sddm !== "undefined" && sddm && sddm.hostName) ? sddm.hostName : "synapse", false],
                     ["KERNEL", "linux-cachyos · BORE", false],
                     ["DNS", "Quad9 · DNS-over-TLS", false],
                     ["MAC", "randomized", true],
@@ -374,7 +375,7 @@ Item {
                         Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: 1; color: root.withAlpha(root.accent, 0.55) }
                     }
                     onAccepted: root.doLogin()
-                    onTextEdited: status.show(keyboard.capsLock ? "caps lock is on" : "", root.subtext)
+                    onTextEdited: status.show((typeof keyboard !== "undefined" && keyboard && keyboard.capsLock) ? "caps lock is on" : "", root.subtext)
                 }
                 Button {
                     id: enter
@@ -392,7 +393,7 @@ Item {
                 id: status
                 function show(msg, col) { text = msg; color = col }
                 height: 16 * root.s
-                text: keyboard.capsLock ? "caps lock is on" : ""
+                text: (typeof keyboard !== "undefined" && keyboard && keyboard.capsLock) ? "caps lock is on" : ""
                 color: root.subtext
                 font { family: root.mono; pixelSize: 11 * root.s }
             }
@@ -424,8 +425,8 @@ Item {
                     spacing: 4 * root.s
                     Repeater {
                         model: [
-                            { label: "restart", can: sddm.canReboot, act: function() { sddm.reboot() } },
-                            { label: "shutdown", can: sddm.canPowerOff, act: function() { sddm.powerOff() } }
+                            { label: "restart", can: (typeof sddm !== "undefined" && sddm && sddm.canReboot), act: function() { if (typeof sddm !== "undefined" && sddm && sddm.reboot) sddm.reboot() } },
+                            { label: "shutdown", can: (typeof sddm !== "undefined" && sddm && sddm.canPowerOff), act: function() { if (typeof sddm !== "undefined" && sddm && sddm.powerOff) sddm.powerOff() } }
                         ]
                         delegate: Button {
                             id: powerButton
@@ -446,7 +447,7 @@ Item {
 
     Text {
         anchors { left: parent.left; bottom: parent.bottom; leftMargin: 28 * root.s; bottomMargin: 26 * root.s }
-        text: keyboard.layouts.length > 0 ? keyboard.layouts[keyboard.currentLayout].shortName.toUpperCase() : ""
+        text: (typeof keyboard !== "undefined" && keyboard && keyboard.layouts && keyboard.layouts.length > 0 && keyboard.currentLayout !== undefined && keyboard.layouts[keyboard.currentLayout] && keyboard.layouts[keyboard.currentLayout].shortName) ? keyboard.layouts[keyboard.currentLayout].shortName.toUpperCase() : ""
         color: root.subtext
         font { family: root.mono; pixelSize: 12 * root.s }
     }

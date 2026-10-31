@@ -10,6 +10,7 @@ Presents the user with:
 
 import os
 import sys
+import shutil
 import subprocess
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -21,6 +22,43 @@ from PyQt6.QtGui import QFont, QIcon, QPixmap
 
 CONFIG_DIR = os.path.expanduser("~/.config/synapse")
 ONBOARDING_FLAG = os.path.join(CONFIG_DIR, ".onboarding_complete")
+
+def update_gtk_settings(settings_path: str, icon_theme: str):
+    """Write or update gtk-icon-theme-name under [Settings] in GTK settings.ini."""
+    os.makedirs(os.path.dirname(settings_path), exist_ok=True)
+    lines = []
+    if os.path.exists(settings_path):
+        try:
+            with open(settings_path, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+        except Exception:
+            lines = []
+
+    settings_section_idx = -1
+    icon_theme_idx = -1
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped == "[Settings]":
+            settings_section_idx = i
+        elif stripped.startswith("gtk-icon-theme-name") and settings_section_idx != -1:
+            icon_theme_idx = i
+            break
+        elif stripped.startswith("[") and settings_section_idx != -1 and i > settings_section_idx:
+            break
+
+    entry = f"gtk-icon-theme-name = {icon_theme}\n"
+    if icon_theme_idx != -1:
+        lines[icon_theme_idx] = entry
+    elif settings_section_idx != -1:
+        lines.insert(settings_section_idx + 1, entry)
+    else:
+        if lines and not lines[-1].endswith("\n"):
+            lines.append("\n")
+        lines.append("[Settings]\n")
+        lines.append(entry)
+
+    with open(settings_path, "w", encoding="utf-8") as f:
+        f.writelines(lines)
 
 class OnboardingWizard(QMainWindow):
     def __init__(self):
@@ -462,6 +500,21 @@ class OnboardingWizard(QMainWindow):
             ], check=False)
             with open(os.path.join(CONFIG_DIR, "icon_theme"), "w") as f:
                 f.write(self.selected_icon_theme + "\n")
+
+            # Write to ~/.config/gtk-3.0/settings.ini & ~/.config/gtk-4.0/settings.ini
+            gtk3_file = os.path.expanduser("~/.config/gtk-3.0/settings.ini")
+            gtk4_file = os.path.expanduser("~/.config/gtk-4.0/settings.ini")
+            for gtk_file in (gtk3_file, gtk4_file):
+                try:
+                    update_gtk_settings(gtk_file, self.selected_icon_theme)
+                except Exception:
+                    pass
+
+            # Update via gsettings if available
+            if shutil.which("gsettings"):
+                subprocess.run([
+                    "gsettings", "set", "org.gnome.desktop.interface", "icon-theme", self.selected_icon_theme
+                ], check=False)
         except Exception:
             pass
 

@@ -140,7 +140,7 @@ Window {
                 Text {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "[Esc] Close  ·  [Click or Hotkey] Fire"
+                    text: "[Esc] Close · [Enter] Launch / Ask AI · [Ctrl+Enter] Ask AI"
                     color: "#6c7086"
                     font { family: root.mono; pixelSize: 11 }
                 }
@@ -178,7 +178,7 @@ Window {
                         selectedTextColor: "#11111b"
 
                         Text {
-                            text: "Type to search commands, or ask AI directly (Enter to fire)..."
+                            text: "[Esc] Close · [Enter] Launch / Ask AI · [Ctrl+Enter] Ask AI"
                             color: "#6c7086"
                             font: searchBox.font
                             visible: !searchBox.text && !searchBox.activeFocus
@@ -192,8 +192,20 @@ Window {
                                 return
                             }
                             if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                if (searchBox.text.trim().length > 0) {
-                                    root.launchCommand("AI_PROMPT:" + searchBox.text.trim())
+                                var q = searchBox.text.trim()
+                                if (q.length > 0) {
+                                    var isCtrl = (event.modifiers & Qt.ControlModifier) !== 0
+                                    var isAiExplicit = q.startsWith("?") || q.toLowerCase().startsWith("ai ")
+                                    if (isCtrl || isAiExplicit) {
+                                        root.launchCommand("AI_PROMPT:" + q)
+                                    } else {
+                                        var match = root.findFirstMatch(q)
+                                        if (match !== "") {
+                                            root.launchCommand(match)
+                                        } else {
+                                            root.launchCommand("AI_PROMPT:" + q)
+                                        }
+                                    }
                                     event.accepted = true
                                 }
                                 return
@@ -309,6 +321,27 @@ Window {
                 }
             }
         }
+    }
+
+    function findFirstMatch(query) {
+        if (!query) return ""
+        var q = query.trim().toLowerCase()
+        if (q === "") return ""
+        for (var i = 0; i < commandGrid.children.length; ++i) {
+            var cat = commandGrid.children[i]
+            if (cat && cat.items) {
+                for (var j = 0; j < cat.items.length; ++j) {
+                    var item = cat.items[j]
+                    if ((item.label && item.label.toLowerCase().indexOf(q) !== -1) ||
+                        (item.desc && item.desc.toLowerCase().indexOf(q) !== -1) ||
+                        (item.key && item.key.toLowerCase() === q) ||
+                        (item.cmd && item.cmd.toLowerCase().indexOf(q) !== -1)) {
+                        return item.cmd
+                    }
+                }
+            }
+        }
+        return ""
     }
 
     function findCommandByKey(key) {

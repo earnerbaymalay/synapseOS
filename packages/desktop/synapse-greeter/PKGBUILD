@@ -8,7 +8,7 @@ url="https://github.com/earnerbaymalay/synapseOS"
 license=('MIT')
 depends=('sddm' 'qt6-declarative' 'synapse-themes' 'ttf-jetbrains-mono-nerd')
 source=('Main.qml' 'metadata.desktop' 'theme.conf')
-sha256sums=('3d490d0428714c5f31a3c0766263ccdc3c068d0d2334b617a2ee6391e119472b'
+sha256sums=('3425522de5e38236e82066919830d8eedd33623c46c9e5046e9a381d1e701a6a'
             '0e352244f026b5c6a84df1b0a5e01d0e8c06c44e30216bf4d774adff5115c4c4'
             '2105e533a650700d15a50a742d23146c5f2c0d196b8ba824e477e9f2a0d4ae6e')
 

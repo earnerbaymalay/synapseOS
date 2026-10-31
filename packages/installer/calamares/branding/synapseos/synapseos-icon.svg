@@ -1,0 +1,89 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Soft Contact Drop Shadow -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="7" stdDeviation="6" flood-color="#000000" flood-opacity="0.75"/>
+    </filter>
+
+    <!-- Chamfered Chrome Rim Gradient (45 degree specular reflection) -->
+    <linearGradient id="chrome-rim" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+      <stop offset="18%" stop-color="#cdd6f4" stop-opacity="0.95"/>
+      <stop offset="38%" stop-color="#45475a" stop-opacity="0.85"/>
+      <stop offset="65%" stop-color="#cba6f7" stop-opacity="0.95"/>
+      <stop offset="85%" stop-color="#ffffff" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#181825" stop-opacity="1"/>
+    </linearGradient>
+
+    <!-- Liquid Metal Face (Subsurface Mauve Sheen) -->
+    <radialGradient id="metal-face" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#313244"/>
+      <stop offset="45%" stop-color="#1e1e2e"/>
+      <stop offset="78%" stop-color="#181825"/>
+      <stop offset="100%" stop-color="#11111b"/>
+    </radialGradient>
+
+    <!-- High-Gloss Horizon Reflection -->
+    <linearGradient id="horizon" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/>
+      <stop offset="48%" stop-color="#cba6f7" stop-opacity="0.16"/>
+      <stop offset="50%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.22"/>
+    </linearGradient>
+
+    <!-- Glowing Twin Hook Gradient -->
+    <linearGradient id="hook-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="30%" stop-color="#cdd6f4"/>
+      <stop offset="70%" stop-color="#cba6f7"/>
+      <stop offset="100%" stop-color="#b4befe"/>
+    </linearGradient>
+
+    <!-- Neon Arc Bloom -->
+    <filter id="bloom" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3.2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Base Plate with Chamfered Squircle Corners -->
+  <rect x="10" y="10" width="108" height="108" rx="26" fill="url(#chrome-rim)" filter="url(#shadow)"/>
+
+  <!-- Inner Machined Obsidian Metal Inset -->
+  <rect x="14" y="14" width="100" height="100" rx="22" fill="url(#metal-face)"/>
+
+  <!-- Horizon Specular Gloss Sheen -->
+  <path d="M 14 36 C 14 24 24 14 36 14 L 92 14 C 104 14 114 24 114 36 L 114 56 Q 64 70 14 56 Z" fill="url(#horizon)"/>
+
+  <!-- Specular Chamfer Highlight Wire (Top-Left Gleam) -->
+  <path d="M 20 36 C 20 26 28 20 38 20 L 90 20" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.85"/>
+
+  <!-- Glowing Twin Hook Cipher Core -->
+  <g id="cipher-core" filter="url(#bloom)">
+    <!-- Hook A (Upper) -->
+    <path d="M 95.5,28.0 L 91.9,40.6 L 51.4,40.6 L 45.1,46.9 L 45.1,57.7 L 63.1,57.7 L 59.5,70.3 L 41.5,70.3 L 32.5,61.3 L 32.5,37.0 L 41.5,28.0 Z"
+          fill="url(#hook-grad)" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round"/>
+    
+    <!-- Hook B (Lower) -->
+    <path d="M 32.5,100.0 L 36.1,87.4 L 76.6,87.4 L 82.9,81.1 L 82.9,70.3 L 64.9,70.3 L 68.5,57.7 L 86.5,57.7 L 95.5,66.7 L 95.5,91.0 L 86.5,100.0 Z"
+          fill="url(#hook-grad)" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round"/>
+
+    <!-- Central Dielectric Kerf Arc Jump -->
+    <path d="M 59.5,70.3 Q 64.0,64.0 68.5,57.7" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/>
+    <circle cx="64" cy="64" r="2.8" fill="#ffffff"/>
+    <circle cx="64" cy="64" r="6.0" fill="#cba6f7" opacity="0.6"/>
+  </g>
+
+  <!-- Precision corner alignment ticks -->
+  <line x1="22" y1="22" x2="26" y2="22" stroke="#cba6f7" stroke-width="1.2" opacity="0.7"/>
+  <line x1="22" y1="22" x2="22" y2="26" stroke="#cba6f7" stroke-width="1.2" opacity="0.7"/>
+  <line x1="106" y1="22" x2="102" y2="22" stroke="#cba6f7" stroke-width="1.2" opacity="0.7"/>
+  <line x1="106" y1="22" x2="106" y2="26" stroke="#cba6f7" stroke-width="1.2" opacity="0.7"/>
+  <line x1="22" y1="106" x2="26" y2="106" stroke="#cba6f7" stroke-width="1.2" opacity="0.7"/>
+  <line x1="22" y1="106" x2="22" y2="102" stroke="#cba6f7" stroke-width="1.2" opacity="0.7"/>
+  <line x1="106" y1="106" x2="102" y2="106" stroke="#cba6f7" stroke-width="1.2" opacity="0.7"/>
+  <line x1="106" y1="106" x2="106" y2="102" stroke="#cba6f7" stroke-width="1.2" opacity="0.7"/>
+</svg>

@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="540" height="130" viewBox="0 0 540 130">
+  <defs>
+    <!-- Liquid Silver Chrome Gradient -->
+    <linearGradient id="chromeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="20%" stop-color="#cdd6f4"/>
+      <stop offset="50%" stop-color="#bac2de"/>
+      <stop offset="75%" stop-color="#cba6f7"/>
+      <stop offset="100%" stop-color="#b4befe"/>
+    </linearGradient>
+
+    <!-- Catppuccin Mauve Gradient -->
+    <linearGradient id="mauveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#cba6f7"/>
+      <stop offset="50%" stop-color="#d4b5fc"/>
+      <stop offset="100%" stop-color="#f5c2e7"/>
+    </linearGradient>
+
+    <!-- Chrome Rim Inset -->
+    <linearGradient id="hookRim" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="50%" stop-color="#cba6f7" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#181825" stop-opacity="0.8"/>
+    </linearGradient>
+
+    <!-- Glow Filter -->
+    <filter id="neonGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Left: Twin Hook Cipher Emblem -->
+  <g id="twin-hook-cipher" filter="url(#neonGlow)">
+    <!-- Hook A (Upper Chamfered Hook) -->
+    <path d="M 103.2,18.6 L 98.6,34.8 L 46.4,34.8 L 38.2,43.0 L 38.2,56.9 L 61.4,56.9 L 56.8,73.1 L 33.6,73.1 L 22.0,61.5 L 22.0,30.2 L 33.6,18.6 Z"
+          fill="url(#chromeGradient)" stroke="url(#hookRim)" stroke-width="1.6" stroke-linejoin="round"/>
+    
+    <!-- Hook B (Lower Chamfered Hook) -->
+    <path d="M 22.0,111.4 L 26.6,95.2 L 78.8,95.2 L 87.0,87.0 L 87.0,73.1 L 63.8,73.1 L 68.4,56.9 L 91.6,56.9 L 103.2,68.5 L 103.2,99.8 L 91.6,111.4 Z"
+          fill="url(#chromeGradient)" stroke="url(#hookRim)" stroke-width="1.6" stroke-linejoin="round"/>
+
+    <!-- Central Dielectric Kerf Arc Spark -->
+    <path d="M 56.8,73.1 Q 62.6,65.0 68.4,56.9" stroke="#ffffff" stroke-width="2.8" stroke-linecap="round"/>
+    <circle cx="62.6" cy="65.0" r="3.2" fill="#ffffff"/>
+    <circle cx="62.6" cy="65.0" r="7.0" fill="#cba6f7" opacity="0.65"/>
+  </g>
+
+  <!-- Specular highlight accents on cipher -->
+  <path d="M 34.0,21.0 L 100.0,21.0" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round" opacity="0.75"/>
+  <path d="M 25.0,109.0 L 89.0,109.0" stroke="#cba6f7" stroke-width="1.4" stroke-linecap="round" opacity="0.65"/>
+
+  <!-- Modern Geometric Typography -->
+  <!-- "SYNAPSE" in Liquid Silver Chrome -->
+  <text x="136" y="70" font-family="DejaVu Sans, Inter, system-ui, -apple-system, sans-serif" font-size="48" font-weight="900" fill="#cdd6f4" letter-spacing="4">SYNAPSE<tspan fill="url(#mauveGradient)">OS</tspan></text>
+
+  <!-- Subtitle Tagline -->
+  <text x="138" y="94" font-family="DejaVu Sans Mono, monospace" font-size="11" font-weight="700" fill="#a6adc8" letter-spacing="3.8">INTELLIGENT CYBERDECK · PRIME DIRECTIVE STEALTH</text>
+
+  <!-- Precision Technical Rule -->
+  <g filter="url(#softGlow)">
+    <line x1="138" y1="106" x2="490" y2="106" stroke="url(#mauveGradient)" stroke-width="1.8" stroke-opacity="0.8"/>
+    <polygon points="492,106 498,103 504,106 498,109" fill="#cba6f7"/>
+  </g>
+</svg>

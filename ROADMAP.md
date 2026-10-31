@@ -59,4 +59,22 @@
 - [x] Lossless Token Squasher (`synapse squash` & `/usr/bin/squash`): JFrog Boost equivalent stripping ANSI escape codes, carriage return progress bars, and repetitive test noise.
 - [x] Hardened Zero-Telemetry Chromium: Configured with `--disable-telemetry`, `--disable-sync`, `--disable-metrics`, `--no-default-browser-check` as default browser.
 - [x] Calamares Netinstall Feature Packs: Selectable installer modules for *Pentest Heavy*, *Creative & Office*, and *Daily Desktop*.
-- [x] Engineering Gate Harness: 256/256 automated verification checks passing (100% pass, 0 warnings, 0 failures).
+- [x] Engineering Gate Harness: 279/279 automated verification checks passing (100% pass, 0 warnings, 0 failures; 17/17 pytest unit & UI tests passing).
+
+## Phase 8: Hardware Orchestration, Neural Daemon Mesh & ISO Production Release (Next Phase)
+- [ ] **Milestone 8.1: Live ISO Compilation & QEMU/KVM Boot Verification (Stage C)**
+  - [ ] Execute `./build/build-iso.sh` to compile native `[synapseos]` packages into `out/repo/synapseos.db.tar.gz`.
+  - [ ] Produce `out/synapseos-YYYY.MM.DD-x86_64.iso` via `mkarchiso`.
+  - [ ] Validate headless QEMU/KVM boot kinematics: UEFI `systemd-boot` $\rightarrow$ `synapse-plymouth` Twin Hook laser engrave splash $\rightarrow$ `synapse-greeter` SDDM Qt6 handoff $\rightarrow$ XFCE/Sway desktop session $\rightarrow$ Calamares installation walkthrough.
+- [ ] **Milestone 8.2: Synapse Core Gateway & Bidirectional Context Firewall**
+  - [ ] Finalize `/usr/bin/synapse` (`synapse-core` Rust daemon) loopback gateway (`127.0.0.1:8000`) with Bearer token authentication and DNS-rebinding protection.
+  - [ ] Implement outbound prompt secret & entropy inspection (redacting API keys, private keys, SSH certificates).
+  - [ ] Integrate background vector memory indexing for `~/AIBrain/notes/scratchpad.md` into local persistent embeddings.
+- [ ] **Milestone 8.3: Hardware Orchestration & Latency Profile Daemon**
+  - [ ] Implement `synapse-hardware` CLI/daemon for dynamic PL1 thermal envelope switching (15W eco vs 25W performance via `throttled`).
+  - [ ] Wire dynamic PipeWire buffer quantum switching (64/48000 for low-latency DSP vs 1024 for battery efficiency).
+  - [ ] Integrate Waybar warning alerts if RAM saturation exceeds 90% before ZRAM zstd compression reaches ceiling.
+- [ ] **Milestone 8.4: Package Repository Signing & Release Automation (Stage D)**
+  - [ ] Establish detached GPG repository signing for `synapseos.db.tar.gz` and package archives.
+  - [ ] Generate `out/SHA256SUMS` and `out/SHA512SUMS`.
+  - [ ] Tag `v0.1.0-alpha` and trigger GitHub Actions release CI/CD workflow.
