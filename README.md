@@ -18,8 +18,6 @@
   <img src="https://img.shields.io/badge/Telemetry-0%20(Prime%20Directive)-f38ba8?style=flat-square&logo=privatedivision&logoColor=ffffff" alt="Zero Telemetry"/>
   <img src="https://img.shields.io/badge/License-MIT%20%2F%20GPLv3-d4dae2?style=flat-square" alt="License"/>
 </p>
-```
----
 
 ## ⚡ The Five Architectural Pillars
 
