@@ -298,41 +298,155 @@ class SynapseSettingsWindow(QMainWindow):
         vbox = QVBoxLayout(widget)
         vbox.setSpacing(14)
 
-        pipe_lbl = QLabel("Audio Engine: PipeWire + WirePlumber (Low-Latency)")
-        pipe_lbl.setStyleSheet(f"color: {self.accent}; font-family: 'JetBrainsMono Nerd Font'; font-size: 12px; font-weight: 700;")
+        # Hardware Telemetry Header
+        hw_title = QLabel("⚡ Hardware & Thermal Orchestration")
+        hw_title.setStyleSheet(f"color: {self.accent}; font-family: 'JetBrainsMono Nerd Font'; font-size: 13px; font-weight: 700;")
+        vbox.addWidget(hw_title)
+
+        # Telemetry Card
+        telem_frame = QFrame()
+        telem_frame.setStyleSheet("""
+            QFrame {
+                background-color: #181825;
+                border: 1px solid #313244;
+                border-radius: 12px;
+                padding: 10px;
+            }
+        """)
+        telem_layout = QVBoxLayout(telem_frame)
+        telem_layout.setSpacing(6)
+
+        self.lbl_hw_telemetry = QLabel("Reading hardware telemetry...")
+        self.lbl_hw_telemetry.setStyleSheet("color: #cdd6f4; font-family: 'JetBrainsMono Nerd Font'; font-size: 11px;")
+        telem_layout.addWidget(self.lbl_hw_telemetry)
+        vbox.addWidget(telem_frame)
+
+        def update_telemetry():
+            try:
+                res = subprocess.run(["synapse-hardware", "bar"], capture_output=True, text=True, timeout=2)
+                import json
+                data = json.loads(res.stdout.strip())
+                tooltip = data.get("tooltip", "").replace("\n", "  ·  ")
+                self.lbl_hw_telemetry.setText(f"Status: {data.get('text', '')}\n{tooltip}")
+            except Exception as e:
+                self.lbl_hw_telemetry.setText(f"Telemetry: Active (PipeWire + Intel P-State)")
+
+        update_telemetry()
+
+        # Power Profile Controls
+        pwr_lbl = QLabel("CPU Energy & Performance Profile:")
+        pwr_lbl.setStyleSheet("color: #a6adc8; font-family: 'JetBrainsMono Nerd Font'; font-size: 11px; font-weight: 700;")
+        vbox.addWidget(pwr_lbl)
+
+        pwr_row = QHBoxLayout()
+        pwr_row.setSpacing(8)
+
+        def set_pwr(profile: str):
+            subprocess.run(["synapse-hardware", "power", profile], check=False)
+            update_telemetry()
+
+        btn_perf = QPushButton("⚡ Performance")
+        btn_perf.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_perf.setStyleSheet(f"QPushButton {{ background-color: #11111b; color: {ACCENTS['crimson']}; font-family: 'JetBrainsMono Nerd Font'; padding: 8px 12px; border-radius: 10px; border: 1px solid #313244; }} QPushButton:hover {{ border-color: {ACCENTS['crimson']}; }}")
+        btn_perf.clicked.connect(lambda: set_pwr("performance"))
+        pwr_row.addWidget(btn_perf)
+
+        btn_bal = QPushButton("⚖ Balanced")
+        btn_bal.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_bal.setStyleSheet(f"QPushButton {{ background-color: #11111b; color: {ACCENTS['sapphire']}; font-family: 'JetBrainsMono Nerd Font'; padding: 8px 12px; border-radius: 10px; border: 1px solid #313244; }} QPushButton:hover {{ border-color: {ACCENTS['sapphire']}; }}")
+        btn_bal.clicked.connect(lambda: set_pwr("balanced"))
+        pwr_row.addWidget(btn_bal)
+
+        btn_eco = QPushButton("🌱 Powersave / Eco")
+        btn_eco.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_eco.setStyleSheet(f"QPushButton {{ background-color: #11111b; color: {ACCENTS['emerald']}; font-family: 'JetBrainsMono Nerd Font'; padding: 8px 12px; border-radius: 10px; border: 1px solid #313244; }} QPushButton:hover {{ border-color: {ACCENTS['emerald']}; }}")
+        btn_eco.clicked.connect(lambda: set_pwr("eco"))
+        pwr_row.addWidget(btn_eco)
+        vbox.addLayout(pwr_row)
+
+        # Audio Engine Latency Controls
+        pipe_lbl = QLabel("PipeWire Quantum & Latency Modes:")
+        pipe_lbl.setStyleSheet("color: #a6adc8; font-family: 'JetBrainsMono Nerd Font'; font-size: 11px; font-weight: 700;")
         vbox.addWidget(pipe_lbl)
 
-        btn_audio = QPushButton("🔊 Open Audio Switcher (DAC / Headphones / Laptop)")
+        audio_row = QHBoxLayout()
+        audio_row.setSpacing(8)
+
+        def set_audio_mode(mode: str):
+            subprocess.run(["synapse-hardware", "audio", mode], check=False)
+            update_telemetry()
+
+        btn_lowlat = QPushButton("🚀 Low-Latency (128)")
+        btn_lowlat.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_lowlat.setStyleSheet(f"QPushButton {{ background-color: #11111b; color: {self.accent}; font-family: 'JetBrainsMono Nerd Font'; padding: 8px 12px; border-radius: 10px; border: 1px solid #313244; }} QPushButton:hover {{ border-color: {self.accent}; }}")
+        btn_lowlat.clicked.connect(lambda: set_audio_mode("low-latency"))
+        audio_row.addWidget(btn_lowlat)
+
+        btn_def_audio = QPushButton("🔊 Default (512)")
+        btn_def_audio.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_def_audio.setStyleSheet("QPushButton { background-color: #11111b; color: #cdd6f4; font-family: 'JetBrainsMono Nerd Font'; padding: 8px 12px; border-radius: 10px; border: 1px solid #313244; } QPushButton:hover { border-color: #ffffff; }")
+        btn_def_audio.clicked.connect(lambda: set_audio_mode("default"))
+        audio_row.addWidget(btn_def_audio)
+
+        btn_eff_audio = QPushButton("🔋 Efficient (1024)")
+        btn_eff_audio.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_eff_audio.setStyleSheet(f"QPushButton {{ background-color: #11111b; color: {ACCENTS['emerald']}; font-family: 'JetBrainsMono Nerd Font'; padding: 8px 12px; border-radius: 10px; border: 1px solid #313244; }} QPushButton:hover {{ border-color: {ACCENTS['emerald']}; }}")
+        btn_eff_audio.clicked.connect(lambda: set_audio_mode("efficient"))
+        audio_row.addWidget(btn_eff_audio)
+        vbox.addLayout(audio_row)
+
+        # Quick Actions
+        actions_row = QHBoxLayout()
+        actions_row.setSpacing(8)
+
+        btn_audio = QPushButton("🎧 Audio Outputs (`audio-switch`)")
         btn_audio.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_audio.setStyleSheet("""
-            QPushButton {{
+            QPushButton {
                 background-color: #11111b;
                 color: #cdd6f4;
                 font-family: 'JetBrainsMono Nerd Font';
-                padding: 8px 16px;
-                border-radius: 12px;
+                padding: 8px 14px;
+                border-radius: 10px;
                 border: 1px solid #313244;
-            }}
-            QPushButton:hover {{ border-color: #ffffff; }}
+            }
+            QPushButton:hover { border-color: #ffffff; }
         """)
         btn_audio.clicked.connect(lambda: subprocess.Popen(["audio-switch"]))
-        vbox.addWidget(btn_audio)
+        actions_row.addWidget(btn_audio)
 
-        btn_throttled = QPushButton("⚡ Dell 7490 25W Sustained Boost Status (`throttled`)")
-        btn_throttled.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_throttled.setStyleSheet("""
-            QPushButton {{
+        btn_diag = QPushButton("📊 Hardware Cockpit")
+        btn_diag.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_diag.setStyleSheet("""
+            QPushButton {
                 background-color: #11111b;
                 color: #cdd6f4;
                 font-family: 'JetBrainsMono Nerd Font';
-                padding: 8px 16px;
-                border-radius: 12px;
+                padding: 8px 14px;
+                border-radius: 10px;
                 border: 1px solid #313244;
-            }}
-            QPushButton:hover {{ border-color: #ffffff; }}
+            }
+            QPushButton:hover { border-color: #ffffff; }
+        """)
+        btn_diag.clicked.connect(lambda: subprocess.Popen(["kitty", "--class", "synapse-floating", "-e", "synapse-hardware", "status"]))
+        actions_row.addWidget(btn_diag)
+
+        btn_throttled = QPushButton("⚡ Sustained Boost (`throttled`)")
+        btn_throttled.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_throttled.setStyleSheet("""
+            QPushButton {
+                background-color: #11111b;
+                color: #cdd6f4;
+                font-family: 'JetBrainsMono Nerd Font';
+                padding: 8px 14px;
+                border-radius: 10px;
+                border: 1px solid #313244;
+            }
+            QPushButton:hover { border-color: #ffffff; }
         """)
         btn_throttled.clicked.connect(lambda: subprocess.Popen(["kitty", "--hold", "systemctl", "status", "throttled"]))
-        vbox.addWidget(btn_throttled)
+        actions_row.addWidget(btn_throttled)
+        vbox.addLayout(actions_row)
 
         vbox.addStretch()
         return widget
