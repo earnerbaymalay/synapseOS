@@ -1,7 +1,7 @@
 # Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
 pkgname=synapse-hud
 pkgver=0.1.0
-pkgrel=2
+pkgrel=3
 pkgdesc="Native Qt6/QML Material You Command HUD, Synapse Settings Control Center, Brain Notes, and Metallic Icon Suites"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"

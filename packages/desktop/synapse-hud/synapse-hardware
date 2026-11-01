@@ -129,6 +129,17 @@ def set_audio_quantum(mode: str):
         print(f"Unknown audio mode: {mode}. Choose: low-latency | efficient | default")
 
 
+def print_bar_json():
+    temp_str = get_cpu_temp()
+    gov, freq = get_cpu_freq_and_governor()
+    pw = get_pipewire_quantum()
+    tooltip = f"CPU Governor: {gov} ({freq})\nThermals: {temp_str}\nPipeWire: {pw}\nClick for hardware status"
+    print(json.dumps({
+        "text": f"󰈸 {temp_str}",
+        "tooltip": tooltip,
+        "class": "normal"
+    }))
+
 def print_status():
     gov, freq = get_cpu_freq_and_governor()
     temp = get_cpu_temp()
@@ -159,6 +170,8 @@ def main():
     cmd = sys.argv[1].lower()
     if cmd == "status":
         print_status()
+    elif cmd in ("bar", "waybar"):
+        print_bar_json()
     elif cmd in ("power", "profile"):
         mode = sys.argv[2] if len(sys.argv) > 2 else "balanced"
         set_power_profile(mode)

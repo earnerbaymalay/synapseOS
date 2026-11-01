@@ -21,6 +21,7 @@
     ],
     "modules-right": [
         "custom/synapse",
+        "custom/hardware",
         "custom/stealth",
         "custom/help",
         "cpu",
@@ -81,6 +82,13 @@
         "format": "{:%Y-%m-%d  %H:%M:%S}",
         "interval": 1,
         "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>"
+    },
+        "custom/hardware": {
+        "exec": "/usr/bin/synapse-hardware bar",
+        "return-type": "json",
+        "interval": 5,
+        "on-click": "kitty --class synapse-floating -e /usr/bin/synapse-hardware status",
+        "tooltip": true
     },
     "custom/synapse": {
         "exec": "curl -sf http://127.0.0.1:8000/health >/dev/null 2>&1 && echo 'SYNAPSE: ONLINE' || echo 'SYNAPSE: STANDBY'",
