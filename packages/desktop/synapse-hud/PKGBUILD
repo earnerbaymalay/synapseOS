@@ -18,6 +18,7 @@ source=(
   "synapse-stealth"
   "sec-status"
   "audio-switch"
+  "synapse-hardware"
   "Main.qml"
   "CommandCategoryCard.qml"
   "synapse-hud.desktop"
@@ -26,6 +27,7 @@ source=(
   "synapse-welcome.desktop"
 )
 sha256sums=(
+  "SKIP"
   'SKIP'
   'SKIP'
   'SKIP'
@@ -56,6 +58,7 @@ package() {
   install -Dm755 "${srcdir}/synapse-stealth" "${pkgdir}/usr/bin/synapse-stealth"
   install -Dm755 "${srcdir}/sec-status" "${pkgdir}/usr/bin/sec-status"
   install -Dm755 "${srcdir}/audio-switch" "${pkgdir}/usr/bin/audio-switch"
+  install -Dm755 "${srcdir}/synapse-hardware" "${pkgdir}/usr/bin/synapse-hardware"
   ln -sf "/usr/bin/synapse-hud" "${pkgdir}/usr/bin/synapse-palette"
 
   # QML Assets
