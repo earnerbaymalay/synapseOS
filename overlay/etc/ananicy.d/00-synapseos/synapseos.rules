@@ -1,0 +1,24 @@
+# ==============================================================================
+# SynapseOS Ananicy-CPP Process Scheduler Priority Rules
+# CachyOS BORE / EEVDF low-latency desktop responsiveness
+# ==============================================================================
+
+# Interactive Desktop Shell & UI Cockpit (Zero latency stutter)
+{ "name": "sway", "type": "LowLatency_RT" }
+{ "name": "waybar", "type": "LowLatency_RT" }
+{ "name": "picom", "type": "LowLatency_RT" }
+{ "name": "kitty", "type": "LowLatency_RT" }
+{ "name": "foot", "type": "LowLatency_RT" }
+
+# Synapse Cyberdeck Tools
+{ "name": "synapse-hud", "type": "LowLatency_RT" }
+{ "name": "synapse-welcome", "type": "LowLatency_RT" }
+{ "name": "synapse-palette", "type": "LowLatency_RT" }
+{ "name": "synapse-settings", "type": "LowLatency_RT" }
+{ "name": "synapse-screensaver", "type": "Player-Video" }
+{ "name": "synapse-notes", "type": "Doc-View" }
+
+# Core Background Daemons
+{ "name": "synapse", "type": "Service" }
+{ "name": "ollama", "type": "Heavy_CPU" }
+

@@ -167,7 +167,7 @@ fi
 SDDM_THEME_CONF="${REPO_ROOT}/packages/desktop/synapse-greeter/theme.conf"
 SDDM_MAIN_QML="${REPO_ROOT}/packages/desktop/synapse-greeter/Main.qml"
 SYNAPSE_SVC="${REPO_ROOT}/packages/core/synapse-core/synapse.service"
-QF_THEME_BIN="${REPO_ROOT}/packages/desktop/llm-quickfire-panel/src/llm-quickfire-panel/bin/quickfire-theme"
+QF_THEME_BIN="${REPO_ROOT}/components/synapse-palette/bin/quickfire-theme"
 QF_DESKTOP_SRC="${REPO_ROOT}/packages/desktop/llm-quickfire-panel/config/llm-quickfire-panel.desktop"
 
 check_file_contains "${SDDM_THEME_CONF}" "^user=$" "SDDM synapseos theme.conf pins no host-specific user"
