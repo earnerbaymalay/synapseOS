@@ -1,7 +1,6 @@
-# SynapseOS — "Twin Hook" laser-engrave boot splash (Plymouth script plugin)
-# Frames are pre-rendered per accent by render_frames.py; this script plays them
-# sequentially (minimal RAM in initramfs), then holds on the finished emblem with
-# an organic breathing glow pulse. Handles LUKS passphrase prompt and boot messages.
+# SynapseOS — Authentic 3D Liquid Chrome Monolith Boot Splash (Plymouth script plugin)
+# Exact text size, liquid reflections, and metallic texture matching the boot video.
+# Continuously plays realistic specular reflection loop with organic ambient breathing glow.
 
 Window.SetBackgroundTopColor(0.067, 0.067, 0.106);
 Window.SetBackgroundBottomColor(0.067, 0.067, 0.106);
@@ -11,25 +10,17 @@ ACCENT_R = @ACCENT_R@;
 ACCENT_G = @ACCENT_G@;
 ACCENT_B = @ACCENT_B@;
 
-# Authored canvas: 600x560 at 1080p.
+# Authored canvas: 960x540 (16:9).
 # Robust multi-resolution display scaling across 720p, 1080p, 1440p, 4K without distortion.
 screen_w = Window.GetWidth();
 screen_h = Window.GetHeight();
 
-scale_h = screen_h / 1080;
-scale_w = (screen_w * 0.85) / 600;
-
-if (scale_h < scale_w) {
-    scale = scale_h;
-} else {
-    scale = scale_w;
-}
-
+scale = screen_h / 540;
 if (scale < 0.40) scale = 0.40;
-if (scale > 3.00) scale = 3.00;
+if (scale > 4.00) scale = 4.00;
 
-fw = Math.Int(600 * scale);
-fh = Math.Int(560 * scale);
+fw = Math.Int(960 * scale);
+fh = Math.Int(540 * scale);
 fx = Window.GetX() + Math.Int((screen_w - fw) / 2);
 fy = Window.GetY() + Math.Int((screen_h - fh) / 2);
 
@@ -54,36 +45,24 @@ glow.SetOpacity(0);
 global.tick = 0;
 global.shown = -1;
 global.held = 0;
-global.hold_start = 0;
 
 # Plymouth calls refresh at 50 Hz; frames advance every 2 ticks (25 fps).
 fun refresh_callback() {
     global.tick = global.tick + 1;
-    n = Math.Int(global.tick / 2);
-    if (n < FRAMES) {
-        if (n != global.shown) {
-            anim.SetImage(load(frame_name(n)));
-            global.shown = n;
-        }
-    } else {
-        if (global.held == 0) {
-            anim.SetImage(load("final.png"));
-            glow.SetImage(load("glow.png"));
-            global.held = 1;
-            global.hold_start = global.tick;
-        }
-        # Organic breathing glow with smooth sine pulse & seamless fade-in
-        hold_ticks = global.tick - global.hold_start;
-        fade_in = hold_ticks / 35;
-        if (fade_in > 1.0) fade_in = 1.0;
-
-        # Organic breathing cycle: ~3.0s period (150 ticks at 50Hz)
-        # Smooth sine with smoothstep easing for lifelike biological expansion
-        phase = (hold_ticks / 50) * (2 * 3.14159 / 3.0);
-        sine_norm = (Math.Sin(phase) + 1.0) / 2.0;
-        pulse = sine_norm * sine_norm * (3.0 - 2.0 * sine_norm);
-        glow.SetOpacity(fade_in * (0.15 + 0.65 * pulse));
+    frame_idx = Math.Int(global.tick / 2) % FRAMES;
+    if (frame_idx != global.shown) {
+        anim.SetImage(load(frame_name(frame_idx)));
+        global.shown = frame_idx;
     }
+    if (global.held == 0) {
+        glow.SetImage(load("glow.png"));
+        global.held = 1;
+    }
+    # Ambient breathing pulse
+    phase = (global.tick / 50) * (2 * 3.14159 / 3.0);
+    sine_norm = (Math.Sin(phase) + 1.0) / 2.0;
+    pulse = sine_norm * sine_norm * (3.0 - 2.0 * sine_norm);
+    glow.SetOpacity(0.12 + 0.45 * pulse);
 }
 Plymouth.SetRefreshFunction(refresh_callback);
 

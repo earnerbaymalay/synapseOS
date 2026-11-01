@@ -1,16 +1,15 @@
 # Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
 pkgname=synapse-plymouth
 pkgver=0.1.0
-pkgrel=2
-pkgdesc="SynapseOS Plymouth boot splash: laser-engraved Twin Hook S, one theme per accent"
+pkgrel=4
+pkgdesc="SynapseOS Plymouth boot splash: authentic 3D embossed liquid chrome emblem, one theme per accent"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"
 license=('MIT')
 depends=('plymouth')
 makedepends=('python' 'python-pillow' 'python-numpy')
-source=('render_frames.py' 'synapseos.script.in')
-sha256sums=('8da5ef0380fc6edbedefd0327ac75f1ff9b89a2b51718d21f577f619c6d01308'
-            'c8e7a7c801aa63df32565f8454d31a9ad6f225477507301daaa7f6cf6e81fb08')
+source=('render_frames.py' 'synapseos.script.in' 'master_plate_960.png')
+sha256sums=('SKIP' 'SKIP' 'SKIP')
 
 _accents=(
   'mauve:cba6f7:Mauve'
@@ -44,7 +43,7 @@ package() {
     cat > "$dir/synapseos-$name.plymouth" << PLY
 [Plymouth Theme]
 Name=SynapseOS ($label)
-Description=Laser-engraved Twin Hook S — SynapseOS boot splash, $label accent
+Description=Authentic 3D Liquid Chrome Monolith — SynapseOS boot splash, $label accent
 ModuleName=script
 
 [script]

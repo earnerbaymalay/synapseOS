@@ -126,7 +126,7 @@ Window {
             // Header Row
             Item {
                 width: parent.width
-                height: headerTitle.implicitHeight
+                height: 24
 
                 Text {
                     id: headerTitle
@@ -137,12 +137,41 @@ Window {
                     font { family: root.mono; pixelSize: 13; bold: true; letterSpacing: 1.2 }
                 }
 
-                Text {
+                Row {
                     anchors.right: parent.right
                     anchors.verticalCenter: parent.verticalCenter
-                    text: "[Esc] Close · [Enter] Launch / Ask AI · [Ctrl+Enter] Ask AI"
-                    color: "#6c7086"
-                    font { family: root.mono; pixelSize: 11 }
+                    spacing: 12
+
+                    Text {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: "[Esc] Close · [Enter] Launch / Ask AI · [Ctrl+Enter] Ask AI"
+                        color: "#6c7086"
+                        font { family: root.mono; pixelSize: 11 }
+                    }
+
+                    Rectangle {
+                        id: closeBtn
+                        width: 24
+                        height: 24
+                        radius: 6
+                        color: closeMouseArea.containsMouse ? "#f38ba8" : "#313244"
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "✕"
+                            color: closeMouseArea.containsMouse ? "#11111b" : "#cdd6f4"
+                            font { family: root.mono; pixelSize: 12; bold: true }
+                        }
+
+                        MouseArea {
+                            id: closeMouseArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.closeHud()
+                        }
+                    }
                 }
             }
 

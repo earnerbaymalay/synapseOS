@@ -1,7 +1,7 @@
 # Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
 pkgname=llm-quickfire-panel
 pkgver=0.1.0
-pkgrel=2
+pkgrel=3
 pkgdesc="Instant Rofi/GTK Cyberdeck HUD & Live Theme Switcher for Local LLMs and SynapseOS"
 arch=('any')
 url="https://github.com/earnerbaymalay/llm-quickfire-panel"
@@ -20,13 +20,12 @@ package() {
   cd "$srcdir/llm-quickfire-panel"
 
   # Install core binaries
-  install -Dm755 "bin/synapse-palette" "$pkgdir/usr/bin/synapse-palette"
+  install -Dm755 "bin/quickfire" "$pkgdir/usr/bin/quickfire"
   install -Dm755 "bin/quickfire-theme" "$pkgdir/usr/bin/quickfire-theme"
 
   # Create standard command palette aliases and backward compatibility shims
-  ln -sf "/usr/bin/synapse-palette" "$pkgdir/usr/bin/quickfire"
-  ln -sf "/usr/bin/synapse-palette" "$pkgdir/usr/bin/agy-palette"
-  ln -sf "/usr/bin/synapse-palette" "$pkgdir/usr/bin/llm-quickfire-panel"
+  ln -sf "/usr/bin/quickfire" "$pkgdir/usr/bin/agy-palette"
+  ln -sf "/usr/bin/quickfire" "$pkgdir/usr/bin/llm-quickfire-panel"
   ln -sf "/usr/bin/quickfire-theme" "$pkgdir/usr/bin/synapse-palette-theme"
 
   # Install curated color palettes & themes
@@ -35,22 +34,20 @@ package() {
     cp -r themes/* "$pkgdir/usr/share/llm-quickfire-panel/themes/"
   fi
 
-  # Install XDG autostart desktop entry
-  install -dm755 "$pkgdir/etc/xdg/autostart"
-  cat > "$pkgdir/etc/xdg/autostart/llm-quickfire-panel.desktop" << 'EOF'
+  # Install desktop entry in applications menu (do not autostart)
+  install -dm755 "$pkgdir/usr/share/applications"
+  cat > "$pkgdir/usr/share/applications/llm-quickfire-panel.desktop" << 'EOF'
 [Desktop Entry]
 Type=Application
 Name=LLM Quickfire Panel
 Comment=SynapseOS Cyberdeck Command Palette & Local LLM HUD
-Exec=/usr/bin/quickfire --autostart
+Exec=/usr/bin/quickfire
 Icon=utilities-terminal
 Terminal=false
 Categories=Utility;ArtificialIntelligence;
 StartupNotify=false
-Hidden=false
-X-GNOME-Autostart-enabled=true
 EOF
-  ln -sf "llm-quickfire-panel.desktop" "$pkgdir/etc/xdg/autostart/synapse-palette.desktop"
+  ln -sf "llm-quickfire-panel.desktop" "$pkgdir/usr/share/applications/synapse-palette.desktop"
 
   # Install shell completions if available
   if [[ -d "completions" ]]; then
