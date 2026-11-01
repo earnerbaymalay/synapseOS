@@ -1,8 +1,8 @@
 # Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
 pkgname=synapse-hud
 pkgver=0.1.0
-pkgrel=3
-pkgdesc="Native Qt6/QML Material You Command HUD, Synapse Settings Control Center, Brain Notes, and Metallic Icon Suites"
+pkgrel=4
+pkgdesc="Native Qt6/QML Material You Command HUD, Synapse Settings Control Center, Brain Notes, Metallic Icon Suites, and Neural Governor"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"
 license=('MIT')
@@ -19,6 +19,8 @@ source=(
   "sec-status"
   "audio-switch"
   "synapse-hardware"
+  "synapse-governor"
+  "synapse-governor.service"
   "Main.qml"
   "CommandCategoryCard.qml"
   "synapse-hud.desktop"
@@ -28,6 +30,8 @@ source=(
 )
 sha256sums=(
   "SKIP"
+  'SKIP'
+  'SKIP'
   'SKIP'
   'SKIP'
   'SKIP'
@@ -59,6 +63,8 @@ package() {
   install -Dm755 "${srcdir}/sec-status" "${pkgdir}/usr/bin/sec-status"
   install -Dm755 "${srcdir}/audio-switch" "${pkgdir}/usr/bin/audio-switch"
   install -Dm755 "${srcdir}/synapse-hardware" "${pkgdir}/usr/bin/synapse-hardware"
+  install -Dm755 "${srcdir}/synapse-governor" "${pkgdir}/usr/bin/synapse-governor"
+  install -Dm644 "${srcdir}/synapse-governor.service" "${pkgdir}/usr/lib/systemd/system/synapse-governor.service"
   ln -sf "/usr/bin/synapse-hud" "${pkgdir}/usr/bin/synapse-palette"
 
   # QML Assets

@@ -95,3 +95,4 @@
 > sudo pacman -Syu
 > ```
 > Before any package update is written to disk, `snap-pac` automatically captures a Btrfs pre-update snapshot. If an upstream update ever causes an issue, you can immediately reboot and select the prior snapshot from GRUB or execute `sudo snapper rollback`.
+

@@ -108,3 +108,4 @@ sudo snapper rollback 14
 # 3. Reboot into restored state:
 sudo reboot
 ```
+

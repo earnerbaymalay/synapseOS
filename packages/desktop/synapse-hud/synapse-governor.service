@@ -1,0 +1,16 @@
+[Unit]
+Description=SynapseOS Neural Hardware & Thermal Performance Governor
+After=multi-user.target throttled.service ollama.service
+Wants=throttled.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/synapse-governor
+Restart=on-failure
+RestartSec=3s
+StandardOutput=journal
+StandardError=journal
+Nice=-5
+
+[Install]
+WantedBy=multi-user.target

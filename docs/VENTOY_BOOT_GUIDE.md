@@ -137,3 +137,4 @@ Once inside the Ventoy graphical boot menu:
 | **Ventoy menu does not appear; boots straight to Windows** | Windows Fast Startup locked the EFI controller or USB boot priority is low | In Windows, disable Fast Startup (`Power Options`). In BIOS, move USB Storage above Windows Boot Manager. |
 | **"No media found" during pacstrap/live mount** | Slow USB 2.0 handshake or corrupted ISO copy | Re-copy ISO to the Ventoy partition and run `sync` before unmounting. Ensure USB is plugged into a USB 3.0/3.1 port. |
 | **Resolution is stretched or low** | UEFI fallback resolution selected | In BIOS setup, ensure Video/Display mode is set to Native resolution or UEFI High-Resolution mode. |
+

@@ -103,3 +103,4 @@ Add the module to `~/.config/waybar/config.jsonc`:
     ```bash
     sudo pacman -S nvidia-cachyos-dkms nvidia-utils
     ```
+
