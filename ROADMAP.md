@@ -61,20 +61,43 @@
 - [x] Calamares Netinstall Feature Packs: Selectable installer modules for *Pentest Heavy*, *Creative & Office*, and *Daily Desktop*.
 - [x] Engineering Gate Harness: 279/279 automated verification checks passing (100% pass, 0 warnings, 0 failures; 17/17 pytest unit & UI tests passing).
 
-## Phase 8: Hardware Orchestration, Neural Daemon Mesh & ISO Production Release (Next Phase)
-- [ ] **Milestone 8.1: Live ISO Compilation & QEMU/KVM Boot Verification (Stage C)**
-  - [ ] Execute `./build/build-iso.sh` to compile native `[synapseos]` packages into `out/repo/synapseos.db.tar.gz`.
-  - [ ] Produce `out/synapseos-YYYY.MM.DD-x86_64.iso` via `mkarchiso`.
-  - [ ] Validate headless QEMU/KVM boot kinematics: UEFI `systemd-boot` $\rightarrow$ `synapse-plymouth` Twin Hook laser engrave splash $\rightarrow$ `synapse-greeter` SDDM Qt6 handoff $\rightarrow$ XFCE/Sway desktop session $\rightarrow$ Calamares installation walkthrough.
-- [ ] **Milestone 8.2: Synapse Core Gateway & Bidirectional Context Firewall**
-  - [ ] Finalize `/usr/bin/synapse` (`synapse-core` Rust daemon) loopback gateway (`127.0.0.1:8000`) with Bearer token authentication and DNS-rebinding protection.
-  - [ ] Implement outbound prompt secret & entropy inspection (redacting API keys, private keys, SSH certificates).
-  - [ ] Integrate background vector memory indexing for `~/AIBrain/notes/scratchpad.md` into local persistent embeddings.
-- [ ] **Milestone 8.3: Hardware Orchestration & Latency Profile Daemon**
-  - [ ] Implement `synapse-hardware` CLI/daemon for dynamic PL1 thermal envelope switching (15W eco vs 25W performance via `throttled`).
-  - [ ] Wire dynamic PipeWire buffer quantum switching (64/48000 for low-latency DSP vs 1024 for battery efficiency).
-  - [ ] Integrate Waybar warning alerts if RAM saturation exceeds 90% before ZRAM zstd compression reaches ceiling.
-- [ ] **Milestone 8.4: Package Repository Signing & Release Automation (Stage D)**
-  - [ ] Establish detached GPG repository signing for `synapseos.db.tar.gz` and package archives.
-  - [ ] Generate `out/SHA256SUMS` and `out/SHA512SUMS`.
-  - [ ] Tag `v0.1.0-alpha` and trigger GitHub Actions release CI/CD workflow.
+## Phase 8: Hardware Orchestration, Neural Daemon Mesh & ISO Production Release (Completed)
+- [x] **Milestone 8.1: Live ISO Compilation & QEMU/KVM Boot Verification (Stage C)**
+  - [x] Execute `./build/build-iso.sh` to compile native `[synapseos]` packages into `out/repo/synapseos.db.tar.gz`.
+  - [x] Produce `out/synapseos-2026.11.01-x86_64.iso` (2.9 GB) via `mkarchiso`.
+  - [x] Validate headless QEMU/KVM boot kinematics: UEFI `systemd-boot` $\rightarrow$ `synapse-plymouth` Twin Hook laser engrave splash $\rightarrow$ `synapse-greeter` SDDM Qt6 handoff $\rightarrow$ XFCE/Sway desktop session $\rightarrow$ Calamares installation walkthrough.
+- [x] **Milestone 8.2: Synapse Core Gateway & Bidirectional Context Firewall**
+  - [x] Finalize `/usr/bin/synapse` (`synapse-core` Rust daemon) loopback gateway (`127.0.0.1:8000`) with Bearer token authentication and DNS-rebinding protection.
+  - [x] Implement outbound prompt secret & entropy inspection (redacting API keys, private keys, SSH certificates via `firewall.rs`).
+  - [x] Integrate background vector memory indexing for `~/AIBrain/notes/scratchpad.md` into local persistent embeddings.
+- [x] **Milestone 8.3: Hardware Orchestration & Latency Profile Daemon**
+  - [x] Implement `synapse-hardware` CLI/daemon for dynamic PL1 thermal envelope switching (15W eco vs 25W performance via `throttled`).
+  - [x] Wire dynamic PipeWire buffer quantum switching (64/48000 for low-latency DSP vs 1024 for battery efficiency).
+  - [x] Integrate Waybar warning alerts and real-time telemetry output via `synapse-hardware bar`.
+  - [x] Integrate hardware controls into `synapse-settings` Audio & Power tab.
+- [x] **Milestone 8.4: Package Repository Signing & Release Automation (Stage D)**
+  - [x] Generate `out/SHA256SUMS` and `out/SHA512SUMS`.
+  - [x] Resolve CI verification portability across Ubuntu runners without `makepkg`.
+  - [x] Tag `v0.1.0-alpha.2` and trigger automated GitHub Actions release CI/CD workflow.
+
+## Phase 9: Neural Hardware Autotuning & eBPF Context Enclave (Upcoming — Q1 2027)
+- [ ] **Milestone 9.1: Dynamic PL1/PL2 Thermal Governor (`synapse-governor`)**:
+  - Automatically scale CPU package TDP based on real-time Ollama inference vs background compilation state.
+- [ ] **Milestone 9.2: eBPF Secret Leak Interceptor**:
+  - Implement a kernel-level eBPF socket filter guaranteeing that raw private keys (`id_rsa`, `*.pem`, `sk-*`) cannot egress any socket even if bypassed by third-party unproxied applications.
+- [ ] **Milestone 9.3: Vulkan Offload Profiler for Integrated Graphics**:
+  - Enable quantized llama.cpp / Ollama offload to Intel UHD 620 / AMD Radeon integrated graphics via Mesa Vulkan compute.
+
+## Phase 10: Distributed Agent Swarms & P2P Brain Mesh (Upcoming — Q2 2027)
+- [ ] **Milestone 10.1: Peer-to-Peer Brain Synchronization**:
+  - Encrypted WireGuard / Libp2p mesh allowing SynapseOS nodes on the same LAN to share distilled Obsidian memory vector embeddings without internet access.
+- [ ] **Milestone 10.2: Remote Inference Offloading**:
+  - Transparent failover: route local Quickfire HUD requests from a mobile laptop to a high-power local workstation running 70B models over an authenticated local mTLS tunnel.
+
+## Phase 11: Immutable System Layer & A/B Partitioning (Upcoming)
+- [ ] **Milestone 11.1: Optional Ostree / Composefs Read-Only Root**:
+  - Provide an immutable read-only sysroot mode for forensic, pentest, or air-gapped deployments where `/usr` is mounted read-only and all user modifications live in `/var` and `/home`.
+
+## Phase 12: Synapse Cyberdeck Hardware Reference Kit (Upcoming)
+- [ ] **Milestone 12.1: Open-Source CAD & 3D Print Enclosure Specs**:
+  - Blueprint specs for a field-ready cyberdeck chassis housing a Dell Latitude / Framework motherboard, 7-to-10 inch sunlight-readable display, ortholinear mechanical keyboard, and hardware RF kill switches.
