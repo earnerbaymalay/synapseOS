@@ -36,3 +36,26 @@
     - easyeffects
     - lsp-plugins
     - thunderbird
+
+- name: "Synapse CLI Power Pack"
+  description: "Canonical AI Engineering CLI & Lightweight Bash Tool Suite (synapse-cli, memory bridge, doctor)"
+  hidden: false
+  selected: true
+  critical: false
+  packages:
+    - python-rich
+    - python-yaml
+    - jq
+    - fzf
+    - ripgrep
+    - bat
+
+- name: "Synapse Extras & Extended Ecosystem"
+  description: "Community cyber themes, terminal soundscapes, and advanced Ollama workflow extensions"
+  hidden: false
+  selected: false
+  critical: false
+  packages:
+    - sox
+    - yt-dlp
+    - ffmpeg
