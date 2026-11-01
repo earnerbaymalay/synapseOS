@@ -1,0 +1,6 @@
+[submodule "components/synapse-cli"]
+	path = components/synapse-cli
+	url = https://github.com/earnerbaymalay/synapse.git
+[submodule "components/synapse-palette"]
+	path = components/synapse-palette
+	url = https://github.com/earnerbaymalay/llm-quickfire-panel.git
