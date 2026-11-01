@@ -1,4 +1,8 @@
 # SynapseOS
+> **An AI-Native Rolling Linux Distribution**  
+> *Surgical precision. Zero friction. One Brain. All Models.*
+>
+> *"System aims for minimal if not 0 telemetry and prioritises anonymisation without degradation of service."*
 
 <p align="center">
   <img src="docs/assets/synapseos-banner.png" alt="SynapseOS Banner" width="100%"/>
@@ -14,12 +18,6 @@
   <img src="https://img.shields.io/badge/Telemetry-0%20(Prime%20Directive)-f38ba8?style=flat-square&logo=privatedivision&logoColor=ffffff" alt="Zero Telemetry"/>
   <img src="https://img.shields.io/badge/License-MIT%20%2F%20GPLv3-d4dae2?style=flat-square" alt="License"/>
 </p>
-
-> **An AI-Native Rolling Linux Distribution**  
-> *Surgical precision. Zero friction. One Brain. All Models.*
->
-> *"System aims for minimal if not 0 telemetry and prioritises anonymisation without degradation of service."*
-
 ```
 ---
 
