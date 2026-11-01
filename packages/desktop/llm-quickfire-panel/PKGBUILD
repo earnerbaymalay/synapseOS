@@ -1,7 +1,7 @@
 # Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
 pkgname=llm-quickfire-panel
 pkgver=0.1.0
-pkgrel=1
+pkgrel=2
 pkgdesc="Instant Rofi/GTK Cyberdeck HUD & Live Theme Switcher for Local LLMs and SynapseOS"
 arch=('any')
 url="https://github.com/earnerbaymalay/llm-quickfire-panel"
@@ -20,12 +20,14 @@ package() {
   cd "$srcdir/llm-quickfire-panel"
 
   # Install core binaries
-  install -Dm755 "bin/quickfire" "$pkgdir/usr/bin/quickfire"
+  install -Dm755 "bin/synapse-palette" "$pkgdir/usr/bin/synapse-palette"
   install -Dm755 "bin/quickfire-theme" "$pkgdir/usr/bin/quickfire-theme"
 
-  # Create standard command palette aliases
-  ln -sf "/usr/bin/quickfire" "$pkgdir/usr/bin/agy-palette"
-  ln -sf "/usr/bin/quickfire" "$pkgdir/usr/bin/llm-quickfire-panel"
+  # Create standard command palette aliases and backward compatibility shims
+  ln -sf "/usr/bin/synapse-palette" "$pkgdir/usr/bin/quickfire"
+  ln -sf "/usr/bin/synapse-palette" "$pkgdir/usr/bin/agy-palette"
+  ln -sf "/usr/bin/synapse-palette" "$pkgdir/usr/bin/llm-quickfire-panel"
+  ln -sf "/usr/bin/quickfire-theme" "$pkgdir/usr/bin/synapse-palette-theme"
 
   # Install curated color palettes & themes
   install -dm755 "$pkgdir/usr/share/llm-quickfire-panel/themes"
@@ -33,7 +35,7 @@ package() {
     cp -r themes/* "$pkgdir/usr/share/llm-quickfire-panel/themes/"
   fi
 
-  # Install XDG autostart desktop entry (always enforce /usr/bin/quickfire --autostart)
+  # Install XDG autostart desktop entry
   install -dm755 "$pkgdir/etc/xdg/autostart"
   cat > "$pkgdir/etc/xdg/autostart/llm-quickfire-panel.desktop" << 'EOF'
 [Desktop Entry]
@@ -48,6 +50,7 @@ StartupNotify=false
 Hidden=false
 X-GNOME-Autostart-enabled=true
 EOF
+  ln -sf "llm-quickfire-panel.desktop" "$pkgdir/etc/xdg/autostart/synapse-palette.desktop"
 
   # Install shell completions if available
   if [[ -d "completions" ]]; then
