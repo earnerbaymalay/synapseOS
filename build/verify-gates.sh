@@ -544,7 +544,30 @@ check_file_contains "${THEMES_DIR}/synapse-theme" 'pkexec tee .*GREETER_CONF' "s
 check_file_contains "${THEMES_DIR}/synapse-theme" '<Primary><Super>t' "XFCE Super+Ctrl+T opens the theme menu"
 check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/sway/config" 'Ctrl\+t exec synapse-theme --menu' "Sway Super+Ctrl+T opens the theme menu"
 check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/sway/config" "synapse-screensaver --launch" "Sway idle launches the torus screensaver"
-if (cd "${THEMES_DIR}" && makepkg -f --verifysource --skippgpcheck >/dev/null 2>&1); then
+check_themes_sha256() {
+    (
+        cd "${THEMES_DIR}"
+        if command -v makepkg >/dev/null 2>&1; then
+            makepkg -f --verifysource --skippgpcheck >/dev/null 2>&1
+        else
+            # shellcheck disable=SC1090,SC2154
+            source <(sed -e '/^package()/,$d' PKGBUILD)
+            # shellcheck disable=SC2154
+            for i in "${!source[@]}"; do
+                src="${source[$i]}"
+                expected="${sha256sums[$i]}"
+                if [[ "${expected}" == "SKIP" ]]; then continue; fi
+                actual=$(sha256sum "${src}" 2>/dev/null | awk '{print $1}')
+                if [[ "${actual}" != "${expected}" ]]; then
+                    return 1
+                fi
+            done
+            return 0
+        fi
+    )
+}
+
+if check_themes_sha256; then
     pass "synapse-themes sha256sums match sources"
 else
     fail "synapse-themes sha256sums match sources (run updpkgsums in ${THEMES_DIR#"${REPO_ROOT}/"})"
