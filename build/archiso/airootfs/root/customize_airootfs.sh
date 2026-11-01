@@ -58,6 +58,7 @@ SERVICES=(
     "ananicy-cpp.service"
     "ollama.service"
     "synapse.service"
+    "synapse-chime.service"
 )
 
 for svc in "${SERVICES[@]}"; do

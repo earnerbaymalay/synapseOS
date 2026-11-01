@@ -528,10 +528,22 @@ check_file_contains "${REPO_ROOT}/packages/desktop/synapse-themes/synapse-theme"
 for accent in mauve tungsten crimson sapphire emerald; do
     check_file_contains "${PLY_DIR}/PKGBUILD" "'${accent}:[0-9a-f]{6}:" "Boot splash renders the ${accent} accent"
 done
-if python3 -m py_compile "${PLY_DIR}/render_frames.py" 2>/dev/null; then
-    pass "render_frames.py compiles"
+for mod in compose_intro.py wordmark.py; do
+    if python3 -m py_compile "${PLY_DIR}/${mod}" 2>/dev/null; then
+        pass "${mod} compiles"
+    else
+        fail "${mod} compiles"
+    fi
+done
+check_file_contains "${PLY_DIR}/PKGBUILD" "'laser-intro\.mp4'" "Boot splash ships its laser-intro source clip"
+check_file_contains "${PLY_DIR}/synapse-chime.service" '^ConditionPathExists=!/etc/synapseos/chime\.disabled$' "Startup chime is opt-out via /etc/synapseos/chime.disabled"
+check_file_contains "${PLY_DIR}/synapse-chime.service" '^PrivateNetwork=yes$' "Startup chime runs without network access"
+check_file_contains "${REPO_ROOT}/build/archiso/airootfs/root/customize_airootfs.sh" '"synapse-chime\.service"' "Live ISO enables the startup chime"
+check_file_contains "${REPO_ROOT}/packages/installer/calamares/modules/services-systemd.conf" 'name: "synapse-chime"' "Installed systems enable the startup chime"
+if python3 -m py_compile "${PLY_DIR}/render_chime.py" 2>/dev/null; then
+    pass "render_chime.py compiles"
 else
-    fail "render_frames.py compiles"
+    fail "render_chime.py compiles"
 fi
 
 # V4 theme pack & screensaver

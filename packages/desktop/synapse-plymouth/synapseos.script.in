@@ -1,7 +1,9 @@
-# SynapseOS — "Twin Hook" laser-engrave boot splash (Plymouth script plugin)
-# Frames are pre-rendered per accent by render_frames.py; this script plays them
-# sequentially (minimal RAM in initramfs), then holds on the finished emblem with
-# an organic breathing glow pulse. Handles LUKS passphrase prompt and boot messages.
+# SynapseOS — cinematic laser-engrave boot splash (Plymouth script plugin)
+# Frames are pre-composited per accent by compose_intro.py: twin lasers cut the
+# Twin-Hook S, it snaps into the silver SYNAPSE wordmark, the remaining letters
+# are engraved in. The script plays them once (one frame resident at a time),
+# then holds the wordmark with a breathing accent glow until boot completes.
+# Handles the LUKS passphrase prompt and boot messages.
 
 Window.SetBackgroundTopColor(0.067, 0.067, 0.106);
 Window.SetBackgroundBottomColor(0.067, 0.067, 0.106);
@@ -11,13 +13,13 @@ ACCENT_R = @ACCENT_R@;
 ACCENT_G = @ACCENT_G@;
 ACCENT_B = @ACCENT_B@;
 
-# Authored canvas: 600x560 at 1080p.
+# Authored canvas: 1280x640 at 1080p.
 # Robust multi-resolution display scaling across 720p, 1080p, 1440p, 4K without distortion.
 screen_w = Window.GetWidth();
 screen_h = Window.GetHeight();
 
 scale_h = screen_h / 1080;
-scale_w = (screen_w * 0.85) / 600;
+scale_w = (screen_w * 0.92) / 1280;
 
 if (scale_h < scale_w) {
     scale = scale_h;
@@ -25,11 +27,11 @@ if (scale_h < scale_w) {
     scale = scale_w;
 }
 
-if (scale < 0.40) scale = 0.40;
+if (scale < 0.30) scale = 0.30;
 if (scale > 3.00) scale = 3.00;
 
-fw = Math.Int(600 * scale);
-fh = Math.Int(560 * scale);
+fw = Math.Int(1280 * scale);
+fh = Math.Int(640 * scale);
 fx = Window.GetX() + Math.Int((screen_w - fw) / 2);
 fy = Window.GetY() + Math.Int((screen_h - fh) / 2);
 
@@ -137,7 +139,7 @@ fun message_callback(text) {
 }
 Plymouth.SetMessageFunction(message_callback);
 
-# Leave the finished emblem on screen for the hand-off to the login screen.
+# Leave the finished wordmark on screen for the hand-off to the login screen.
 fun quit_callback() {
     anim.SetImage(load("final.png"));
     glow.SetOpacity(0);

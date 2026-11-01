@@ -162,7 +162,9 @@ build_local_packages() {
                 cd "${pkg_dir}"
                 local makepkg_flags=("-sf" "--noconfirm")
                 # shellcheck source=/dev/null disable=SC2154  # PKGBUILD is per package; makedepends comes from it
-                if [[ -d "${pkg_dir}/src" ]] && [[ -n "$(ls -A "${pkg_dir}/src" 2>/dev/null)" ]]; then
+                # -e (no extract) only for pre-seeded git checkouts; local-file packages must
+                # re-extract so sources added since the last build get linked into src/.
+                if grep -q 'git+' PKGBUILD && [[ -d "${pkg_dir}/src" ]] && [[ -n "$(ls -A "${pkg_dir}/src" 2>/dev/null)" ]]; then
                     makepkg_flags=("-ef" "--noconfirm" "--nodeps")
                 elif [[ -z "$( (source ./PKGBUILD; ((${#makedepends[@]})) && pacman -T "${makedepends[@]}") || true)" ]]; then
                     # Build tools already present: never install runtime deps on the build host
