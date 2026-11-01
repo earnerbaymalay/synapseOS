@@ -59,7 +59,10 @@ jobs:
             -w /workspace \
             archlinux:latest \
             bash -euo pipefail -c "
-              pacman -Syu --noconfirm archiso base-devel git sudo namcap shellcheck
+              echo 'nobody ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers
+              pacman -Syu --noconfirm archiso base-devel git sudo namcap shellcheck rust cargo python python-pillow
+              mkdir -p /workspace/out/repo
+              chown -R nobody:nobody /workspace/out /workspace/packages
               ./build/verify-gates.sh
               ./build/build-iso.sh --build-pkgs
             "
