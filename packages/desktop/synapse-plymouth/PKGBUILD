@@ -1,16 +1,21 @@
 # Maintainer: SynapseOS Engineering Team <maintainers@synapseos.org>
 pkgname=synapse-plymouth
 pkgver=0.1.0
-pkgrel=2
-pkgdesc="SynapseOS Plymouth boot splash: laser-engraved Twin Hook S, one theme per accent"
+pkgrel=3
+pkgdesc="SynapseOS Plymouth boot splash: laser-cut Twin Hook S resolving into the silver SYNAPSE wordmark, one theme per accent"
 arch=('any')
 url="https://github.com/earnerbaymalay/synapseOS"
 license=('MIT')
-depends=('plymouth')
-makedepends=('python' 'python-pillow' 'python-numpy')
-source=('render_frames.py' 'synapseos.script.in')
-sha256sums=('8da5ef0380fc6edbedefd0327ac75f1ff9b89a2b51718d21f577f619c6d01308'
-            'c8e7a7c801aa63df32565f8454d31a9ad6f225477507301daaa7f6cf6e81fb08')
+depends=('plymouth' 'alsa-utils')
+makedepends=('python' 'python-pillow' 'python-numpy' 'ffmpeg')
+source=('compose_intro.py' 'wordmark.py' 'laser-intro.mp4' 'synapseos.script.in'
+        'render_chime.py' 'synapse-chime.service')
+sha256sums=('2535609bc3293012b9e14f222d0e78a256b78bbb3bed2d6cb2937886a2795cad'
+            '5081695e37d2941f300c578449239aab8e56c18315807dad2ef186f7d35ec157'
+            '6dffab4598ff75151b48920b295e781b8374e65f8c9d45c9e5d14bf8f602a195'
+            '04c3c5be315d7b286f21d05e795bfa85ff6bb203417662146fcebee1c996e7d0'
+            'e7a17b6df4b3e4c60433fcc6bb0d84b7e1e559670e861aa9b153ac09235c6c09'
+            'aa76fbc54044f82c06985b3d3032039cae60af6bc3b884ae9c71238c4982c8e2')
 
 _accents=(
   'mauve:cba6f7:Mauve'
@@ -22,14 +27,23 @@ _accents=(
 
 build() {
   local entry name hex
+  # Accents render in parallel (each ~3 min single-threaded); any failure fails the build.
+  local pids=() pid
   for entry in "${_accents[@]}"; do
     IFS=: read -r name hex _ <<< "$entry"
-    python3 render_frames.py "themes/synapseos-$name" "$hex"
+    python3 compose_intro.py laser-intro.mp4 "themes/synapseos-$name" "$hex" &
+    pids+=("$!")
   done
+  for pid in "${pids[@]}"; do
+    wait "$pid" || return 1
+  done
+  python3 render_chime.py startup.wav
 }
 
 package() {
   local entry name hex label dir frames
+  install -Dm644 startup.wav "$pkgdir/usr/share/sounds/synapseos/startup.wav"
+  install -Dm644 synapse-chime.service "$pkgdir/usr/lib/systemd/system/synapse-chime.service"
   for entry in "${_accents[@]}"; do
     IFS=: read -r name hex label <<< "$entry"
     dir="$pkgdir/usr/share/plymouth/themes/synapseos-$name"
@@ -44,7 +58,7 @@ package() {
     cat > "$dir/synapseos-$name.plymouth" << PLY
 [Plymouth Theme]
 Name=SynapseOS ($label)
-Description=Laser-engraved Twin Hook S — SynapseOS boot splash, $label accent
+Description=Laser-cut Twin Hook S into the silver SYNAPSE wordmark — SynapseOS boot splash, $label accent
 ModuleName=script
 
 [script]

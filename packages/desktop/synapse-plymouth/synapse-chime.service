@@ -1,0 +1,20 @@
+[Unit]
+Description=SynapseOS startup chime
+Documentation=https://github.com/earnerbaymlay/synapseOS
+After=sound.target systemd-user-sessions.service
+Wants=sound.target
+# Opt out: touch /etc/synapseos/chime.disabled
+ConditionPathExists=!/etc/synapseos/chime.disabled
+
+[Service]
+Type=exec
+# sysdefault = the hardware card directly; the sddm/root context has no PipeWire session.
+ExecStart=/usr/bin/aplay -q -D sysdefault /usr/share/sounds/synapseos/startup.wav
+DynamicUser=yes
+SupplementaryGroups=audio
+PrivateNetwork=yes
+ProtectHome=yes
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=graphical.target
