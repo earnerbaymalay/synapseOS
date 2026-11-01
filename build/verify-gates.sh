@@ -547,23 +547,20 @@ check_file_contains "${REPO_ROOT}/overlay/etc/skel/.config/sway/config" "synapse
 check_themes_sha256() {
     (
         cd "${THEMES_DIR}"
-        if command -v makepkg >/dev/null 2>&1; then
-            makepkg -f --verifysource --skippgpcheck >/dev/null 2>&1
-        else
-            # shellcheck disable=SC1090,SC2154
-            source <(sed -e '/^package()/,$d' PKGBUILD)
-            # shellcheck disable=SC2154
-            for i in "${!source[@]}"; do
-                src="${source[$i]}"
-                expected="${sha256sums[$i]}"
-                if [[ "${expected}" == "SKIP" ]]; then continue; fi
-                actual=$(sha256sum "${src}" 2>/dev/null | awk '{print $1}')
-                if [[ "${actual}" != "${expected}" ]]; then
-                    return 1
-                fi
-            done
-            return 0
-        fi
+        # Universal pure-bash sha256 verification (safe under root in Docker and on CI hosts)
+        # shellcheck disable=SC1090,SC2154
+        source <(sed -e '/^package()/,$d' PKGBUILD)
+        # shellcheck disable=SC2154
+        for i in "${!source[@]}"; do
+            src="${source[$i]}"
+            expected="${sha256sums[$i]}"
+            if [[ "${expected}" == "SKIP" ]]; then continue; fi
+            actual=$(sha256sum "${src}" 2>/dev/null | awk '{print $1}')
+            if [[ "${actual}" != "${expected}" ]]; then
+                return 1
+            fi
+        done
+        return 0
     )
 }
 
