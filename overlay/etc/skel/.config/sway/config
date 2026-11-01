@@ -64,7 +64,6 @@ bindsym Mod4+c exec [ -x /usr/bin/calamares ] && calamares -d || /usr/bin/galcul
 bindsym Mod4+i exec calamares -d
 bindsym Mod4+a exec /usr/bin/audio-switch
 bindsym Mod4+w exec /usr/bin/synapse-welcome
-bindsym Mod4+k exec /usr/bin/synapse-shortcuts
 bindsym Mod4+slash exec /usr/bin/synapse-shortcuts
 bindsym Mod4+question exec /usr/bin/synapse-shortcuts
 bindsym Mod4+m exec synapse-theme --menu
@@ -90,8 +89,6 @@ bindsym Mod4+Ctrl+Left resize shrink width 40px
 bindsym Mod4+Ctrl+Right resize grow width 40px
 bindsym Mod4+Ctrl+Up resize grow height 40px
 bindsym Mod4+Ctrl+Down resize shrink height 40px
-bindsym Mod4+minus resize shrink width 40px, resize shrink height 40px
-bindsym Mod4+equal resize grow width 40px, resize grow height 40px
 bindsym Mod4+bracketleft resize shrink width 40px
 bindsym Mod4+bracketright resize grow width 40px
 
@@ -143,14 +140,15 @@ bindsym $mod+Shift+9 move container to workspace number 9
 bindsym $mod+Shift+0 move container to workspace number 10
 
 # --- Keybindings: Layout & Scratchpad ---
-bindsym $mod+b splith
+bindsym $mod+backslash splith
 bindsym $mod+v splitv
-bindsym $mod+s layout stacking
-bindsym $mod+w layout tabbed
+bindsym $mod+Shift+s layout stacking
+bindsym $mod+Shift+w layout tabbed
 bindsym $mod+e layout toggle split
-bindsym $mod+f fullscreen
+bindsym $mod+Shift+f fullscreen
+bindsym F11 fullscreen
 bindsym $mod+Shift+space floating toggle
-bindsym $mod+a focus parent
+bindsym $mod+Shift+a focus parent
 bindsym $mod+Shift+minus move scratchpad
 bindsym $mod+minus scratchpad show
 

@@ -15,13 +15,14 @@ Presents the user with:
 
 import os
 import sys
+import json
 import shutil
 import subprocess
 from pathlib import Path
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QButtonGroup, QFrame, QRadioButton,
-    QStackedWidget, QScrollArea, QMessageBox, QGridLayout
+    QStackedWidget, QScrollArea, QMessageBox, QGridLayout, QLineEdit
 )
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QFont, QIcon, QPixmap
@@ -186,6 +187,19 @@ class OnboardingWizard(QMainWindow):
             QPushButton#primaryBtn:hover {
                 background-color: #b4befe;
             }
+            QLineEdit {
+                background-color: #11111b;
+                color: #cdd6f4;
+                border: 1px solid #45475a;
+                border-radius: 8px;
+                padding: 8px 12px;
+                font-size: 13px;
+                font-family: 'JetBrainsMono Nerd Font', 'JetBrains Mono', monospace;
+            }
+            QLineEdit:focus {
+                border: 1px solid #cba6f7;
+                background-color: #181825;
+            }
             QRadioButton {
                 font-size: 13px;
                 spacing: 8px;
@@ -274,6 +288,7 @@ class OnboardingWizard(QMainWindow):
 
         # 2. Main Stacked Pages
         self.stack = QStackedWidget()
+        self.stack.addWidget(self.create_identity_page())
         self.stack.addWidget(self.create_icon_page())
         self.stack.addWidget(self.create_wallpaper_page())
         self.stack.addWidget(self.create_screensaver_page())
@@ -288,17 +303,134 @@ class OnboardingWizard(QMainWindow):
         self.back_btn.setEnabled(False)
         nav_layout.addWidget(self.back_btn)
 
-        self.page_indicator = QLabel("Step 1 of 4: Metallic Icons")
+        self.page_indicator = QLabel("Step 1 of 5: Operator Identity Questionnaire")
         self.page_indicator.setStyleSheet("color: #a6adc8; font-size: 12px; font-weight: bold;")
         self.page_indicator.setAlignment(Qt.AlignmentFlag.AlignCenter)
         nav_layout.addWidget(self.page_indicator, 1)
 
-        self.next_btn = QPushButton("Next: Wallpapers ▶")
+        self.next_btn = QPushButton("Next: Metallic Icons ▶")
         self.next_btn.setObjectName("primaryBtn")
         self.next_btn.clicked.connect(self.next_page)
         nav_layout.addWidget(self.next_btn)
 
         root_layout.addLayout(nav_layout)
+
+    # --- Page 1: Operator Identity & Workstation Questionnaire ---
+    def create_identity_page(self):
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setSpacing(12)
+
+        intro_box = QVBoxLayout()
+        intro = QLabel("Operator Identity & Workstation Questionnaire:")
+        intro.setStyleSheet("font-size: 15px; font-weight: bold; color: #cdd6f4;")
+        intro_desc = QLabel("Configure your user profile, workstation domain name, and primary operational persona.")
+        intro_desc.setStyleSheet("font-size: 11px; color: #a6adc8;")
+        intro_box.addWidget(intro)
+        intro_box.addWidget(intro_desc)
+        layout.addLayout(intro_box)
+
+        # Form Card
+        form_frame = QFrame()
+        form_frame.setStyleSheet("""
+            QFrame {
+                background-color: #181825;
+                border: 1px solid #313244;
+                border-radius: 12px;
+                padding: 14px;
+            }
+        """)
+        form_layout = QVBoxLayout(form_frame)
+        form_layout.setSpacing(10)
+
+        # Field 1: Operator Username
+        lbl_user = QLabel("Operator Call-sign / Username:")
+        lbl_user.setStyleSheet("color: #cba6f7; font-weight: bold; font-size: 12px;")
+        form_layout.addWidget(lbl_user)
+
+        default_user = os.environ.get("USER", "synapse")
+        self.input_username = QLineEdit(default_user)
+        self.input_username.setPlaceholderText("e.g. cyber-operator, neo, alex")
+        form_layout.addWidget(self.input_username)
+
+        # Field 2: Workstation Domain / Hostname
+        lbl_host = QLabel("Workstation Hostname / Domain:")
+        lbl_host.setStyleSheet("color: #74c7ec; font-weight: bold; font-size: 12px;")
+        form_layout.addWidget(lbl_host)
+
+        try:
+            import socket
+            default_host = socket.gethostname()
+        except Exception:
+            default_host = "synapse-deck"
+        self.input_hostname = QLineEdit(default_host)
+        self.input_hostname.setPlaceholderText("e.g. synapse-node, cyberdeck-01, monolith")
+        form_layout.addWidget(self.input_hostname)
+
+        # Field 3: AI Co-Pilot Designation
+        lbl_ai = QLabel("Local AI Assistant Designation:")
+        lbl_ai.setStyleSheet("color: #a6e3a1; font-weight: bold; font-size: 12px;")
+        form_layout.addWidget(lbl_ai)
+
+        self.input_ai_name = QLineEdit("Synapse")
+        self.input_ai_name.setPlaceholderText("e.g. Synapse, Jarvis, Argon, Cort")
+        form_layout.addWidget(self.input_ai_name)
+
+        layout.addWidget(form_frame)
+
+        # Field 4: Persona Selection
+        lbl_persona = QLabel("Select Operational Workflow Persona:")
+        lbl_persona.setStyleSheet("color: #fab387; font-weight: bold; font-size: 12px;")
+        layout.addWidget(lbl_persona)
+
+        self.persona_group = QButtonGroup(self)
+        personas = [
+            ("dev", "🤖 AI & Agentic Developer", "Pre-loads local Ollama keepalive, vector memory, and high-context coding palettes."),
+            ("sec", "🛡️ Cyber Defense & Security", "Enforces strict incoming packet drops, MAC rotation alerts, and terminal forensics."),
+            ("perf", "⚡ Kernel & Performance", "Unlocks sustained 25W PL1 thermal boost, BORE burst auto-nicing, and lowest audio buffer."),
+            ("daily", "🌌 Minimalist Daily Driver", "Streamlined obsidian workspace, extended battery optimizations, and silent thermals.")
+        ]
+
+        self.selected_persona = "dev"
+        for i, (p_id, title_text, desc_text) in enumerate(personas):
+            card = QFrame()
+            card.setStyleSheet("""
+                QFrame {
+                    background-color: #181825;
+                    border: 1px solid #313244;
+                    border-radius: 10px;
+                    padding: 8px 12px;
+                }
+                QFrame:hover {
+                    border: 1px solid #cba6f7;
+                }
+            """)
+            c_layout = QHBoxLayout(card)
+            c_layout.setContentsMargins(4, 4, 4, 4)
+
+            rb = QRadioButton()
+            rb.setChecked(i == 0)
+            self.persona_group.addButton(rb, i)
+
+            text_box = QVBoxLayout()
+            t_lbl = QLabel(title_text)
+            t_lbl.setStyleSheet("font-weight: bold; color: #cdd6f4; font-size: 12px;")
+            d_lbl = QLabel(desc_text)
+            d_lbl.setStyleSheet("color: #a6adc8; font-size: 10px;")
+            text_box.addWidget(t_lbl)
+            text_box.addWidget(d_lbl)
+
+            c_layout.addWidget(rb)
+            c_layout.addLayout(text_box, 1)
+
+            def make_handler(persona_key):
+                return lambda checked: setattr(self, 'selected_persona', persona_key) if checked else None
+
+            rb.toggled.connect(make_handler(p_id))
+            layout.addWidget(card)
+
+        layout.addStretch()
+        return page
 
     # --- Page 1: Metallic Icon Suites ---
     def create_icon_page(self):
@@ -663,21 +795,37 @@ class OnboardingWizard(QMainWindow):
         self.back_btn.setEnabled(idx > 0)
 
         titles = [
-            "Step 1 of 4: Metallic Icons",
-            "Step 2 of 4: Wallpapers & Accents",
-            "Step 3 of 4: Idle Screensaver",
-            "Step 4 of 4: Cyberdeck Verification"
+            "Step 1 of 5: Operator Identity Questionnaire",
+            "Step 2 of 5: Metallic Icons",
+            "Step 3 of 5: Wallpapers & Accents",
+            "Step 4 of 5: Idle Screensaver",
+            "Step 5 of 5: Cyberdeck Verification"
         ]
         self.page_indicator.setText(titles[idx])
 
         if idx == self.stack.count() - 1:
             self.next_btn.setText("✨ Apply & Launch Cyberdeck")
         else:
-            labels = ["Wallpapers ▶", "Screensaver ▶", "Verify & Finish ▶"]
+            labels = ["Metallic Icons ▶", "Wallpapers ▶", "Screensaver ▶", "Verify & Finish ▶"]
             self.next_btn.setText(f"Next: {labels[idx]}")
 
     def apply_and_finish(self):
         os.makedirs(CONFIG_DIR, exist_ok=True)
+
+        # 0. Save Operator Profile Questionnaire
+        try:
+            profile = {
+                "operator": self.input_username.text().strip() or "synapse",
+                "hostname": self.input_hostname.text().strip() or "synapse-deck",
+                "ai_copilot": self.input_ai_name.text().strip() or "Synapse",
+                "persona": getattr(self, "selected_persona", "dev")
+            }
+            with open(os.path.join(CONFIG_DIR, "operator_profile.json"), "w", encoding="utf-8") as f:
+                json.dump(profile, f, indent=2)
+            with open(os.path.join(CONFIG_DIR, "operator"), "w", encoding="utf-8") as f:
+                f.write(profile["operator"] + "\n")
+        except Exception:
+            pass
 
         # 1. Apply Icon Theme (XFCE / GTK)
         try:
